@@ -11,6 +11,7 @@ namespace IMSAutomation.Pages
     {
         public LoginPage(IPage page) : base(page)
         {
+            this.page = page;
         }
 
         public async Task<HomePage> LoginCredentials( string username, string password )

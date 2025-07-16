@@ -25,9 +25,13 @@ namespace IMSAutomation.testcases
             await page.Locator("//*[@id=\"LoginBtn\"]").ClickAsync();
         }
 
-    {
+            {
        
 
+            } );
+            var page = await browser.NewPageAsync();
+            await page.GotoAsync( "https://testserver01-polis.ateshgah.com/WebIMS/Account/Login" );
+        }
 
         [Test, Order(1), Description("Login with valid credentials")]
         public async Task LogoinWithValidCredentials ()
