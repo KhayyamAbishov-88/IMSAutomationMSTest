@@ -18,11 +18,10 @@ namespace IMSAutomation.pages
 
         }
 
-        public async Task ClickProductsMenu(ProductsPage productsPage)
+        public async Task ClickProducts(ProductsPage productsPage)
         {
-           await productsPage.GoToReatilCascoEditView();
-
-            
+          await productsPage.GoToReatilCascoEditView().WaitAsync();
+             
         }
     }
 }

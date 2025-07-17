@@ -14,7 +14,8 @@ namespace IMSAutomation.testcases
     internal class BaseUITest
 
     {
-       protected  IPlaywright playwright;
+        protected IPlaywright playwright;
+      
         IConfiguration configuration;
 
 
@@ -22,8 +23,6 @@ namespace IMSAutomation.testcases
         public async Task BeforeAllTests()
         {
            
-            // Initialize Playwright
-            playwright = await Playwright.CreateAsync();
            
         }
 
@@ -31,10 +30,8 @@ namespace IMSAutomation.testcases
         public async Task BeforeEachtest()
         {
             playwright = await Playwright.CreateAsync();
-            var (Browser, page) = await CreateBrowserAndPage( playwright, "chrome", new BrowserTypeLaunchOptions { Headless = null } );
-            LoginPage loginPage = new LoginPage(page);
-          
-            loginPage.LoginCredentials( "1-1-2-15", "Aa123456789" );
+            
+           
         }
 
         protected async Task<(IBrowser, IPage)> CreateBrowserAndPage ( IPlaywright plawrgt, string browserType, BrowserTypeLaunchOptions launchOptions = null )
@@ -62,7 +59,7 @@ namespace IMSAutomation.testcases
             IPage page = await browser.NewPageAsync();
             await page.SetViewportSizeAsync( 1280, 720 );
 
-            string url = ReaderAppsetting.GetSetting( configuration["AppSettings:testsiteurl"] );
+            string url = "https://test5-polis.ateshgah.com/WebIMS/Account/Login";
             await page.GotoAsync( url );
 
             return (browser, page);
@@ -70,10 +67,18 @@ namespace IMSAutomation.testcases
         }
 
         [TearDown]
-        public async Task AfterEachTest()
+        public async Task AfterEachTest ()
         {
-             playwright.Dispose();
+            
         }
 
+        [OneTimeTearDown]
+        public async Task AfterAllTests ()
+        {
+            if ( playwright != null )
+            {
+                playwright.Dispose();
+            }
+        }
     }
 }
