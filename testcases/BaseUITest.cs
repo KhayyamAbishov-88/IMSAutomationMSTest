@@ -18,12 +18,22 @@ namespace IMSAutomation.testcases
         IConfiguration configuration;
 
 
+        [OneTimeSetUp]
+        public async Task BeforeAllTests()
+        {
+           
+            // Initialize Playwright
+            playwright = await Playwright.CreateAsync();
+           
+        }
+
         [SetUp]
         public async Task BeforeEachtest()
         {
             playwright = await Playwright.CreateAsync();
             var (Browser, page) = await CreateBrowserAndPage( playwright, "chrome", new BrowserTypeLaunchOptions { Headless = null } );
             LoginPage loginPage = new LoginPage(page);
+          
             loginPage.LoginCredentials( "1-1-2-15", "Aa123456789" );
         }
 

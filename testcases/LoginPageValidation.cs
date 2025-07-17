@@ -3,43 +3,24 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using IMSAutomation.Pages;
 using Microsoft.Playwright;
 
 namespace IMSAutomation.testcases
 {
     [TestFixture]
-    internal class LoginPageValidation :BaseUITest
+    internal class LoginPageValidation : BaseUITest
     {
         IPage page;
-        public LoginPageValidation(IPage page)
+        public LoginPageValidation ( IPage page )
         {
             this.page = page;
         }
 
-        [SetUp]
-        public async Task Setup()
+        [Test]
+        public async Task LoginWithValidCredentials ()
         {
-            await page.GotoAsync("https://ims.qarabag.az/");
-            await page.Locator("//*[@id=\"UserName\"]").FillAsync("testuser");
-            await page.Locator("//*[@id=\"Password\"]").FillAsync("testpassword");
-            await page.Locator("//*[@id=\"LoginBtn\"]").ClickAsync();
+            LoginPage loginPage = new LoginPage(page);  
         }
-
-            {
-       
-
-            } );
-            var page = await browser.NewPageAsync();
-            await page.GotoAsync( "https://testserver01-polis.ateshgah.com/WebIMS/Account/Login" );
-        }
-
-        [Test, Order(1), Description("Login with valid credentials")]
-        public async Task LogoinWithValidCredentials ()
-        {
-            
-
-        }
-
-
     }
 }

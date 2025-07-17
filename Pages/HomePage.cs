@@ -18,13 +18,11 @@ namespace IMSAutomation.pages
 
         }
 
-        public async Task<Products> ClickProducts()
+        public async Task ClickProductsMenu(ProductsPage productsPage)
         {
-                // Wait for the page to load and the element to be visible  
-            await page.GetByRole( AriaRole.Link, new() { Name = "Məhsullar" } ).HoverAsync();
-            await page.GetByRole( AriaRole.Link, new() { Name = "Agent Kaskosu" } ).ClickAsync();
+           await productsPage.GoToReatilCascoEditView();
 
-            return new Products( page );
+            
         }
     }
 }
