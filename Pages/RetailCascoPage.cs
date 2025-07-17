@@ -14,7 +14,7 @@ namespace IMSAutomation.Pages
         
         public RetailCascoPage(IPage page) : base(page)
         {
-            this.page = page;
+            
         }
 
       

@@ -20,8 +20,9 @@ namespace IMSAutomation.pages
 
         public async Task ClickProducts(ProductsPage productsPage)
         {
-          await productsPage.GoToReatilCascoEditView().WaitAsync();
-             
+            await productsPage.GoToReatilCascoEditView();
+            await page.WaitForLoadStateAsync( LoadState.NetworkIdle );
+
         }
     }
 }

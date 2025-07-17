@@ -14,11 +14,6 @@ namespace IMSAutomation.testcases
     internal class RetailCascoIssue : BaseUITest
 
     {
-        IPage page;
-        public RetailCascoIssue(IPage page)
-        {
-            this.page = page;
-        }
 
 
         [Test]
