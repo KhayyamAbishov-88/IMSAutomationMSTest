@@ -29,9 +29,11 @@ namespace IMSAutomation.testcases
         [SetUp]
         public async Task BeforeEachtest()
         {
-            playwright = await Playwright.CreateAsync();
-            
            
+            playwright = await Playwright.CreateAsync();
+            LoginPage loginPage = new LoginPage(null);
+
+
         }
 
         protected async Task<(IBrowser, IPage)> CreateBrowserAndPage ( IPlaywright plawrgt, string browserType, BrowserTypeLaunchOptions launchOptions = null )

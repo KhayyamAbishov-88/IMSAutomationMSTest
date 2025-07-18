@@ -6,6 +6,7 @@ using System.Security.AccessControl;
 using System.Text;
 using System.Threading.Tasks;
 using IMSAutomation.pages;
+using IMSAutomation.Pages;
 using Microsoft.Playwright;
 
 namespace IMSAutomation.testcases
@@ -21,8 +22,12 @@ namespace IMSAutomation.testcases
         {
            
             var (browser, page) = await CreateBrowserAndPage(playwright, "chrome", new BrowserTypeLaunchOptions { Headless = false });
-            HomePage homePage = new HomePage(page);
-            homePage.ClickProducts(new ProductsPage(page));
+
+            LoginPage loginPage = new LoginPage( page );
+            HomePage homePage = await loginPage.LoginCredentials( "1-1-2-15", "Aa123456789" );
+            await homePage.ClickProducts( new ProductsPage( page ) );
+
+
 
         }
     }
