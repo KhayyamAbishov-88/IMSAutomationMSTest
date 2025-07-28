@@ -8,18 +8,18 @@ using Microsoft.Playwright;
 
 namespace IMSAutomation.Pages
 {
-    internal class RetailCascoPage :BasePage
+    internal class RetailCascoPage : BasePage
 
     {
-        
-        public RetailCascoPage(IPage page) : base(page)
+
+        public RetailCascoPage ( IPage page ) : base( page )
         {
-            
+
         }
 
         private static readonly Random _random = new Random();
 
-        public static string GenerateCustomCode ()
+        public static string GetRandomVehicleRegNr ()
         {
             string digits = "0123456789";
             string letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -37,6 +37,36 @@ namespace IMSAutomation.Pages
                 .Select( _ => digits[_random.Next( digits.Length )] ).ToArray() );
 
             return part1 + part2 + part3;
+        }
+
+
+        public static string GetRandomVehicleCerNr ()
+        {
+            var random = new Random();
+            // Generate two random uppercase letters
+            char letter1 = ( char )random.Next( 'A', 'Z' + 1 );
+            char letter2 = ( char )random.Next( 'A', 'Z' + 1 );
+
+            // Generate a 6-digit random number
+            int numberPart = random.Next( 100000, 1000000 ); // Ensures it's 6 digits
+
+            return $"{letter1}{letter2}{numberPart}";
+        }
+
+
+        public async Task ClikcFillInputAsync ( string selector, string value )
+        {
+            var input = page.Locator( selector );
+            await input.ClickAsync();
+            await input.FillAsync( value );
+        }
+
+
+        public async Task SelectDropdownItem ( string inputSelector, string optionText )
+        {
+            await page.Locator( inputSelector ).ClickAsync();
+            await page.Locator( inputSelector ).FillAsync( optionText );
+            await page.Locator( $"li:has-text('{optionText}')" ).ClickAsync();
         }
 
 
