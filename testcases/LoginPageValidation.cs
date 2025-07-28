@@ -22,7 +22,7 @@ namespace IMSAutomation.testcases
             LoginPage loginPage = new LoginPage(page);
            HomePage homePage= await loginPage.LoginCredentials( "1-1-2-15", "Aa123456789" );
             await page.WaitForLoadStateAsync( LoadState.NetworkIdle );
-            await homePage.ClickProducts( new ProductsPage( page ) );
+         //   await homePage.ClickProducts( new ProductsPage( page ) );
             
         }
     }

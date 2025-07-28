@@ -8,6 +8,7 @@ using Microsoft.Playwright;
 using Microsoft.Extensions.Configuration;
 using IMSAutomation.utilities;
 using IMSAutomation.Pages;
+using Microsoft.EntityFrameworkCore;
 
 namespace IMSAutomation.testcases
 {
@@ -17,13 +18,12 @@ namespace IMSAutomation.testcases
         protected IPlaywright playwright;
       
         IConfiguration configuration;
-
+       
 
         [OneTimeSetUp]
         public async Task BeforeAllTests()
         {
-           
-           
+
         }
 
         [SetUp]
@@ -63,7 +63,7 @@ namespace IMSAutomation.testcases
 
             string url = "https://test5-polis.ateshgah.com/WebIMS/Account/Login";
             await page.GotoAsync( url );
-
+           
             return (browser, page);
 
         }
@@ -71,7 +71,7 @@ namespace IMSAutomation.testcases
         [TearDown]
         public async Task AfterEachTest ()
         {
-            
+           await Task.Delay( 5000 ); // Optional delay to observe the state after each test
         }
 
         [OneTimeTearDown]

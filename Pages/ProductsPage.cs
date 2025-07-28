@@ -19,7 +19,8 @@ namespace IMSAutomation.testcases
         public async Task<RetailCascoPage> GoToReatilCascoEditView()
         {
             await page.GetByRole( AriaRole.Link, new() { Name = "Məhsullar" } ).HoverAsync();
-            await page.GetByRole( AriaRole.Link, new() { Name = "Agent Kaskosu" } ).ClickAsync();
+            await page.GetByRole( AriaRole.Link, new() { Name = "Agent Kaskosu" } ).ClickAsync( new() { NoWaitAfter=true} );
+            await page.WaitForSelectorAsync( "#Status" );
             return new RetailCascoPage(page);
         }
 
