@@ -58,6 +58,25 @@ namespace IMSAutomation.testcases
             await page.WaitForSelectorAsync( "#Vehicle_ManufactoryYear" );
             await page.FillAsync( "#Vehicle_ManufactoryYear", vehicle.YearOld );
 
+            var vehicle = dbHelper.GetRandomVehicleFromView( "your-db-connection-string" );
+
+            Console.WriteLine( $"Using: {vehicle.BrandName} → {vehicle.ModelName} → {vehicle.SubModel} → {vehicle.YearOld}" );
+
+            // 1. Select Brand
+            await retailCascoPage.SelectDropdownItem( "#Vehicle_VehBrandOidText", vehicle.BrandName );
+
+            // 2. Select Model
+            await page.WaitForSelectorAsync( "#Vehicle_VehModelOidText" );
+            await retailCascoPage.SelectDropdownItem( "#Vehicle_VehModelOidText", vehicle.ModelName );
+
+            // 3. Select Submodel
+            await page.WaitForSelectorAsync( "#Vehicle_VehSubModelNameText" );
+            await retailCascoPage.SelectDropdownItem( "#Vehicle_VehSubModelNameText", vehicle.SubModel );
+
+            // 4. Select Year (age) — assuming Year dropdown is visible and interactive
+            await page.WaitForSelectorAsync( "#Vehicle_YearOldText" );
+            await retailCascoPage.SelectDropdownItem( "#Vehicle_YearOldText", vehicle.YearOld );
+
         }
 
        
