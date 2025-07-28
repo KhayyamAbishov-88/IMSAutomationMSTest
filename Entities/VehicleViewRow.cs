@@ -11,6 +11,6 @@ namespace IMSAutomation.Entities
         public string BrandName { get; set; }
         public string ModelName { get; set; }
         public string SubModel { get; set; }
-        public string YearOld { get; set; } // year_old is the vehicle's age
+        public int YearOld { get; set; } // year_old is the vehicle's age
     }
 }

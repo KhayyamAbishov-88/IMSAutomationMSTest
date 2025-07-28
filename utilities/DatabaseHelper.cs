@@ -36,7 +36,7 @@ namespace IMSAutomation.utilities
                         vehicle.BrandName = reader["vehicle_brand_name"].ToString();
                         vehicle.ModelName = reader["vehicle_model_name"].ToString();
                         vehicle.SubModel = reader["vehicle_sub"].ToString();
-                        vehicle.YearOld = reader["year_old"].ToString();
+                        vehicle.YearOld = Convert.ToInt32( reader["year_old"] );
                     }
                 }
             }

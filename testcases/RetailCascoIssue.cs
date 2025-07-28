@@ -56,7 +56,7 @@ namespace IMSAutomation.testcases
             
 
             await page.WaitForSelectorAsync( "#Vehicle_ManufactoryYear" );
-            await page.FillAsync( "#Vehicle_ManufactoryYear", vehicle.YearOld );
+            await page.FillAsync( "#Vehicle_ManufactoryYear", ( DateTime.Now.Year - vehicle.YearOld ).ToString() );
 
             
 

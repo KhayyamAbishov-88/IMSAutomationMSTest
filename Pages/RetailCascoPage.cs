@@ -66,7 +66,7 @@ namespace IMSAutomation.Pages
         {
             await page.Locator( inputSelector ).ClickAsync();
             await page.Locator( inputSelector ).FillAsync( optionText );
-            await page.Locator( $"li:has-text('{optionText}')" ).ClickAsync();
+          //  await page.Locator( $"li:has-text('{optionText}')" ).ClickAsync();
         }
 
 
