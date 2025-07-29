@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Playwright;
+using NUnit.Framework.Interfaces;
 
 namespace IMSAutomation.Pages
 {
@@ -37,6 +38,8 @@ namespace IMSAutomation.Pages
                 .Select( _ => digits[_random.Next( digits.Length )] ).ToArray() );
 
             return part1 + part2 + part3;
+
+
         }
 
 
@@ -54,22 +57,107 @@ namespace IMSAutomation.Pages
         }
 
 
-        public async Task ClikcFillInputAsync ( string selector, string value )
+        public async Task ClikcFillVechRegNumInputAsync ( string regNum )
         {
-            var input = page.Locator( selector );
+            var input = page.Locator( "#Vehicle_RegNr" );
             await input.ClickAsync();
-            await input.FillAsync( value );
+            await input.FillAsync( regNum );
         }
 
-
-        public async Task SelectDropdownItem ( string inputSelector, string optionText )
+        public async Task ClikcFillVechCertNumInputAsync ( string certNum )
         {
-            await page.Locator( inputSelector ).ClickAsync();
-            await page.Locator( inputSelector ).FillAsync( optionText );
-          //  await page.Locator( $"li:has-text('{optionText}')" ).ClickAsync();
+            var input = page.Locator( "#Vehicle_RegCertNumber" );
+            await input.ClickAsync();
+            await input.FillAsync( certNum );
         }
 
 
 
+        public async Task SelectVehicleBrand ( string brand )
+        {
+            await page.WaitForSelectorAsync( "#Vehicle_VehBrandOidText" );
+            await page.Locator( "#Vehicle_VehBrandOidText" ).ClickAsync();
+            await page.Locator( "#Vehicle_VehBrandOidText" ).FillAsync( brand );
+            //  await page.Locator( $"li:has-text('{optionText}')" ).ClickAsync();
+        }
+
+
+        public async Task SelectVehicleModel ( string model )
+        {
+            await page.WaitForSelectorAsync( "#Vehicle_VehModelOidText" );
+            await page.Locator( "#Vehicle_VehModelOidText" ).ClickAsync();
+            await page.Locator( "#Vehicle_VehModelOidText" ).FillAsync( model );
+            //  await page.Locator( $"li:has-text('{optionText}')" ).ClickAsync();
+        }
+
+
+        public async Task SelectVehicleSubModel ( string submodel )
+        {
+            await page.WaitForSelectorAsync( "#Vehicle_VehSubModelNameText" );
+            await page.Locator( "#Vehicle_VehSubModelNameText" ).ClickAsync();
+            await page.Locator( "#Vehicle_VehSubModelNameText" ).FillAsync( submodel );
+            //  await page.Locator( $"li:has-text('{optionText}')" ).ClickAsync();
+        }
+
+
+        public async Task ClikcFillVechManfactYearInputAsync ( string year )
+        {
+            var input = page.Locator( "#Vehicle_ManufactoryYear" );
+            await input.ClickAsync();
+            await input.FillAsync( year );
+        }
+
+        public async Task SelectVehicleUsage ()
+        {
+            // Type a character to trigger the dropdown
+            await page.FillAsync( "#Vehicle_UsageOidText", "" );
+
+            // Wait for at least one visible item in the dropdown
+            await page.WaitForSelectorAsync( ".ui-menu-item >> visible=true" );
+
+            // Get all visible dropdown items
+            var items = await page.QuerySelectorAllAsync( ".ui-menu-item >> visible=true" );
+
+            if ( items.Count > 0 )
+            {
+                var random = new Random();
+                int index = random.Next( items.Count );
+
+                // Click the randomly selected item
+                await items[index].ClickAsync();
+            }
+            else
+            {
+                throw new Exception( "No visible items found in the dropdown." );
+            }
+        }
+
+            public async Task SelectDeducible ()
+            {
+                // Type a character to trigger the dropdown
+                await page.FillAsync( "#RetailCascoObject_DeductibleText", "" );
+
+                // Wait for at least one visible item in the dropdown
+                await page.WaitForSelectorAsync( ".ui-menu-item >> visible=true" );
+
+                // Get all visible dropdown items
+                var items = await page.QuerySelectorAllAsync( ".ui-menu-item >> visible=true" );
+
+                if ( items.Count > 0 )
+                {
+                    var random = new Random();
+                    int index = random.Next( items.Count );
+
+                    // Click the randomly selected item
+                    await items[index].ClickAsync();
+                }
+                else
+                {
+                    throw new Exception( "No visible items found in the dropdown." );
+                }
+
+
+
+            }
     }
 }

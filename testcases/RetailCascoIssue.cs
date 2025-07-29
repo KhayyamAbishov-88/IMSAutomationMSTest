@@ -30,9 +30,9 @@ namespace IMSAutomation.testcases
             await homePage.ClickProducts( new ProductsPage( page ) );
 
             RetailCascoPage retailCascoPage = new RetailCascoPage( page );
-            await retailCascoPage.ClikcFillInputAsync( "#Vehicle_RegNr", RetailCascoPage.GetRandomVehicleRegNr() );
+            await retailCascoPage.ClikcFillVechRegNumInputAsync( RetailCascoPage.GetRandomVehicleRegNr() );
 
-            await retailCascoPage.ClikcFillInputAsync( "#Vehicle_RegCertNumber", RetailCascoPage.GetRandomVehicleCerNr() );
+            await retailCascoPage.ClikcFillVechCertNumInputAsync(  RetailCascoPage.GetRandomVehicleCerNr() );
           
             DatabaseHelper dbHelper = new DatabaseHelper(); 
 
@@ -41,24 +41,26 @@ namespace IMSAutomation.testcases
             
 
             // 1. Select Brand
-            await page.WaitForSelectorAsync( "#Vehicle_VehBrandOidText" );
-            await retailCascoPage.SelectDropdownItem( "#Vehicle_VehBrandOidText", vehicle.BrandName );
+          
+            
+            await retailCascoPage.SelectVehicleBrand(vehicle.BrandName );
 
             // 2. Select Model
-            await page.WaitForSelectorAsync( "#Vehicle_VehModelOidText" );
-            await retailCascoPage.SelectDropdownItem( "#Vehicle_VehModelOidText", vehicle.ModelName );
+          
+            await retailCascoPage.SelectVehicleModel( vehicle.ModelName );
 
             // 3. Select Submodel
-            await page.WaitForSelectorAsync( "#Vehicle_VehSubModelNameText" );
-            await retailCascoPage.SelectDropdownItem( "#Vehicle_VehSubModelNameText", vehicle.SubModel );
+           
+            await retailCascoPage.SelectVehicleSubModel( vehicle.SubModel );
 
             // 4. Select Year (age) — assuming Year dropdown is visible and interactive
             
 
-            await page.WaitForSelectorAsync( "#Vehicle_ManufactoryYear" );
-            await page.FillAsync( "#Vehicle_ManufactoryYear", ( DateTime.Now.Year - vehicle.YearOld ).ToString() );
+         
+            await retailCascoPage.ClikcFillVechManfactYearInputAsync(( DateTime.Now.Year - vehicle.YearOld ).ToString() );
 
-            
+            await retailCascoPage.SelectVehicleUsage();
+            await retailCascoPage.SelectDeducible();
 
         }
 
