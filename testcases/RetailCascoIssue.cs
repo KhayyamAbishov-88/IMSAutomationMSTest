@@ -62,6 +62,12 @@ namespace IMSAutomation.testcases
             await retailCascoPage.SelectVehicleUsage();
             await retailCascoPage.SelectDeducible();
 
+            await retailCascoPage.ClickSectionByNameAsync(page,"Sığorta");
+
+            await retailCascoPage.SearchPolicyHolderInfo( "4Z6NNQZ", "AA", "6095063" ,"994512068475");
+
+            await retailCascoPage.ClickCalculatePremium();
+
         }
 
        

@@ -36,37 +36,43 @@ namespace IMSAutomation.testcases
 
         }
 
-        protected async Task<(IBrowser, IPage)> CreateBrowserAndPage ( IPlaywright plawrgt, string browserType, BrowserTypeLaunchOptions launchOptions = null )
+        protected async Task<(IBrowser, IPage)> CreateBrowserAndPage ( IPlaywright playwright, string browserType, BrowserTypeLaunchOptions launchOptions )
         {
             IBrowser browser;
+
             if ( browserType.Equals( "chrome", StringComparison.OrdinalIgnoreCase ) )
             {
-                browser = await plawrgt.Chromium.LaunchAsync( launchOptions );
+                browser = await playwright.Chromium.LaunchAsync( launchOptions );
             }
             else if ( browserType.Equals( "firefox", StringComparison.OrdinalIgnoreCase ) )
             {
-                browser = await plawrgt.Firefox.LaunchAsync( launchOptions );
+                browser = await playwright.Firefox.LaunchAsync( launchOptions );
             }
             else if ( browserType.Equals( "webkit", StringComparison.OrdinalIgnoreCase ) )
             {
-                browser = await plawrgt.Webkit.LaunchAsync( launchOptions );
+                browser = await playwright.Webkit.LaunchAsync( launchOptions );
             }
             else
             {
                 Assert.Fail( $"Unsupported browser type: {browserType}" );
                 return (null, null);
-
             }
 
-            IPage page = await browser.NewPageAsync();
+            // ✅ Create context with SSL errors ignored
+            var context = await browser.NewContextAsync( new BrowserNewContextOptions
+            {
+                IgnoreHTTPSErrors = true
+            } );
+
+            var page = await context.NewPageAsync();
             await page.SetViewportSizeAsync( 1280, 720 );
 
-            string url = "https://test5-polis.ateshgah.com/WebIMS/Account/Login";
+            string url = "https://testserver01-polis.ateshgah.com/WebIMS/Account/Login";
             await page.GotoAsync( url );
-           
-            return (browser, page);
 
+            return (browser, page);
         }
+
 
         [TearDown]
         public async Task AfterEachTest ()

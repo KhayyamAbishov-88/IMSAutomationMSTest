@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Security.AccessControl;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using NUnit.Framework.Interfaces;
@@ -159,5 +161,37 @@ namespace IMSAutomation.Pages
 
 
             }
+
+        public async Task ClickSectionByNameAsync ( IPage page, string sectionTitle )
+        {
+            // Find the section-title <h2> by the inner <span> text
+            var section = page.Locator( "h2.section-title" ).Filter( new() { HasTextRegex = new Regex( sectionTitle) } );
+
+            // Click the expand/collapse icon inside that section
+            await section.Locator( ".sect-icon" ).ClickAsync();
+        }
+
+        public async Task SearchPolicyHolderInfo ( string pin,string series,string idNumber, string phone)
+        {
+            await page.Locator( "#Client_SearchParameters_PIN" ).ClickAsync();
+            await page.Locator( "#Client_SearchParameters_PIN" ).PressSequentiallyAsync( pin );
+            
+            await page.Locator( "#Client_SearchParameters_IdSeries" ).ClickAsync();
+            await page.Locator( "#Client_SearchParameters_IdSeries" ).PressSequentiallyAsync( series );
+
+            await page.Locator( "#Client_SearchParameters_IdNumber" ).ClickAsync();
+            await page.Locator( "#Client_SearchParameters_IdNumber" ).PressSequentiallyAsync( idNumber );
+
+            await page.Locator( "#Client_SearchParameters_Search" ).ClickAsync();
+
+            await page.Locator( "#Client_Phone" ).ClickAsync();
+            await page.Locator( "#Client_Phone" ).PressSequentiallyAsync( phone );
+        }
+
+        public async Task ClickCalculatePremium ()
+        {
+            await page.Locator( "#calculateButton" ).ClickAsync();
+        }
+
     }
 }
