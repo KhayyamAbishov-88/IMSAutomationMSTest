@@ -18,9 +18,11 @@ namespace IMSAutomation.testcases
 
         public async Task<RetailCascoPage> GoToReatilCascoEditView()
         {
-            await page.GetByRole( AriaRole.Link, new() { Name = "Məhsullar" } ).HoverAsync();
-            await page.GetByRole( AriaRole.Link, new() { Name = "Agent Kaskosu" } ).ClickAsync( new() { NoWaitAfter=true} );
-            await page.WaitForSelectorAsync( "#Status" );
+            await page.Locator( "ul.menu-links > li" ).Nth( 0 ).HoverAsync();
+            await page.Locator( "a[href='/WebIMS/Common/Policy/Create/43']" ).ClickAsync();
+          // await page.WaitForSelectorAsync( "#Status" );
+
+            await page.WaitForLoadStateAsync( LoadState.DOMContentLoaded );
             return new RetailCascoPage(page);
         }
 

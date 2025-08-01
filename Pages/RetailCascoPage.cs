@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Security.AccessControl;
@@ -7,7 +8,9 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Playwright;
+
 using NUnit.Framework.Interfaces;
+using static OfficeOpenXml.ExcelErrorValue;
 
 namespace IMSAutomation.Pages
 {
@@ -62,8 +65,31 @@ namespace IMSAutomation.Pages
         public async Task ClikcFillVechRegNumInputAsync ( string regNum )
         {
             var input = page.Locator( "#Vehicle_RegNr" );
+            var validationMessage = page.Locator( "span[data-valmsg-for='Vehicle.RegNr']" );
+
+           
             await input.ClickAsync();
             await input.FillAsync( regNum );
+            await input.BlurAsync();
+              
+           
+            if ( string.IsNullOrEmpty( regNum ) )
+            {
+                // Assert required validation message shown
+                await Assertions.Expect( validationMessage ).ToContainTextAsync( "Xahiş olunur 'Qeydiyyat nömrəsi' qeyd edin" );
+            }
+            else if ( !System.Text.RegularExpressions.Regex.IsMatch( regNum, "^[a-zA-Z0-9]*$" ) )
+            {
+                // Assert regex validation message shown
+                await Assertions.Expect( validationMessage ).ToContainTextAsync( "Yalnız rəqəm və hərf daxil edilə bilər" );
+            }
+            else
+            {
+                // If valid input, assert no validation message
+                await Assertions.Expect( validationMessage ).ToBeEmptyAsync();
+            }
+
+
         }
 
         public async Task ClikcFillVechCertNumInputAsync ( string certNum )
@@ -188,9 +214,35 @@ namespace IMSAutomation.Pages
             await page.Locator( "#Client_Phone" ).PressSequentiallyAsync( phone );
         }
 
-        public async Task ClickCalculatePremium ()
+        public async Task ClickToCalculatePremiumAsync ()
         {
             await page.Locator( "#calculateButton" ).ClickAsync();
+            await Assertions.Expect( page.Locator( "#calculateButton" ) ).Not.ToBeDisabledAsync();
+
+            // Strategy 2: Wait for network idle if API calls are involved
+            await page.WaitForLoadStateAsync( LoadState.NetworkIdle );
+        }
+
+        public async Task<decimal> GetBasePremiumAsync ()
+        {
+            var basePremiumInput = page.Locator( "#PolicyDiscount_BasePremium" );
+
+          
+         
+           await Assertions.Expect( basePremiumInput ).Not.ToHaveValueAsync( "0,00" );
+          
+
+
+            var valueStr = await basePremiumInput.InputValueAsync(); // e.g., "0,00"
+
+            var culture = new System.Globalization.CultureInfo( "az-Latn-AZ" );
+
+            // Parse to decimal using the appropriate culture
+            if ( decimal.TryParse( valueStr, System.Globalization.NumberStyles.Any, culture, out var value ) )
+                return value;
+
+            throw new FormatException( $"Could not parse base premium value: '{valueStr}'" );
+
         }
 
     }

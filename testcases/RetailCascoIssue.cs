@@ -17,6 +17,7 @@ namespace IMSAutomation.testcases
     internal class RetailCascoIssue : BaseUITest
 
     {
+        
 
 
         [Test]
@@ -36,7 +37,7 @@ namespace IMSAutomation.testcases
           
             DatabaseHelper dbHelper = new DatabaseHelper(); 
 
-            var vehicle = dbHelper.GetRandomVehicleFromView( "Server=test5;Database=Eagle;User Id=sa_eagle;Password=Pony3201;TrustServerCertificate=True;" );
+            var vehicle = dbHelper.GetRandomVehicleFromView( "Server=testserver01;Database=Eagle;User Id=sa_eagle;Password=Pony3201;TrustServerCertificate=True;" );
 
             
 
@@ -66,8 +67,12 @@ namespace IMSAutomation.testcases
 
             await retailCascoPage.SearchPolicyHolderInfo( "4Z6NNQZ", "AA", "6095063" ,"994512068475");
 
-            await retailCascoPage.ClickCalculatePremium();
+            await retailCascoPage.ClickToCalculatePremiumAsync();
 
+            decimal premium = await retailCascoPage.GetBasePremiumAsync();
+            TestContext.WriteLine( $"Premium calculated: {premium}" );
+
+            Assert.That(premium, Is.GreaterThan( 0m ), $"Premium calcualted: {premium}" );
         }
 
        
