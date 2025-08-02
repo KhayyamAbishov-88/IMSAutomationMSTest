@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace IMSAutomation.testcases
 {
-    internal class BaseUITest
+    public class BaseUITest
 
     {
         protected IPlaywright playwright;

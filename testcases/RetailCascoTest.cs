@@ -14,14 +14,15 @@ using IMSAutomation.utilities;
 namespace IMSAutomation.testcases
 {
     [TestFixture]
-    internal class RetailCascoIssue : BaseUITest
+    public class RetailCascoTest : BaseUITest
 
     {
-        
+
+
 
 
         [Test]
-        public async Task RetailCascoIssuePhysicalPerson()
+        public async Task RetailCascoCalulcatePremium()
         {
            
             var (browser, page) = await CreateBrowserAndPage(playwright, "chrome", new BrowserTypeLaunchOptions { Headless = false });
@@ -70,12 +71,11 @@ namespace IMSAutomation.testcases
             await retailCascoPage.ClickToCalculatePremiumAsync();
 
             decimal premium = await retailCascoPage.GetBasePremiumAsync();
-            TestContext.WriteLine( $"Premium calculated: {premium}" );
-
+         
             Assert.That(premium, Is.GreaterThan( 0m ), $"Premium calcualted: {premium}" );
         }
 
-       
-
     }
+
+
 }

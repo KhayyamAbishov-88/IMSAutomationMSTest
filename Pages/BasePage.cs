@@ -16,5 +16,6 @@ namespace IMSAutomation.Pages
         {
             this.page = page;
         }
+       
     }
 }

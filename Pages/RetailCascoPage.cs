@@ -23,10 +23,12 @@ namespace IMSAutomation.Pages
 
         }
 
-        private static readonly Random _random = new Random();
 
+
+        private static readonly Random _random = new Random();
         public static string GetRandomVehicleRegNr ()
         {
+
             string digits = "0123456789";
             string letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
@@ -47,7 +49,6 @@ namespace IMSAutomation.Pages
 
         }
 
-
         public static string GetRandomVehicleCerNr ()
         {
             var random = new Random();
@@ -60,6 +61,9 @@ namespace IMSAutomation.Pages
 
             return $"{letter1}{letter2}{numberPart}";
         }
+
+
+
 
 
         public async Task ClikcFillVechRegNumInputAsync ( string regNum )
@@ -223,7 +227,7 @@ namespace IMSAutomation.Pages
             await page.WaitForLoadStateAsync( LoadState.NetworkIdle );
         }
 
-        public async Task<decimal> GetBasePremiumAsync ()
+       /* public async Task<decimal> GetBasePremiumAsync ()
         {
             var basePremiumInput = page.Locator( "#PolicyDiscount_BasePremium" );
 
@@ -243,7 +247,34 @@ namespace IMSAutomation.Pages
 
             throw new FormatException( $"Could not parse base premium value: '{valueStr}'" );
 
+        }*/
+
+
+        public async Task<decimal> GetBasePremiumAsync ()
+        {
+            var basePremiumInput = page.Locator( "#PolicyDiscount_BasePremium" );
+            var culture = new System.Globalization.CultureInfo( "az-Latn-AZ" );
+
+            // Wait until value is not "0,00" (max 5s)
+            for ( int i = 0; i < 10; i++ )
+            {
+                var valueStr = await basePremiumInput.InputValueAsync();
+
+                if ( valueStr != "0,00" )
+                {
+                    if ( decimal.TryParse( valueStr, System.Globalization.NumberStyles.Any, culture, out var parsedValue ) )
+                        return parsedValue;
+
+                    throw new FormatException( $"Could not parse base premium value: '{valueStr}'" );
+                }
+
+                await Task.Delay( 500 );
+            }
+
+            // Still "0,00" after waiting — return 0 to fail in test assertion
+            return 0m;
         }
+
 
     }
 }
