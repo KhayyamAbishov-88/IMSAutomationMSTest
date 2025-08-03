@@ -11,71 +11,71 @@ using IMSAutomation.Pages;
 using Microsoft.Playwright;
 using IMSAutomation.utilities;
     
-namespace IMSAutomation.testcases
-{
-    [TestFixture]
-    public class RetailCascoTest : BaseUITest
 
+
+    namespace IMSAutomation.testcases
     {
-
-
-
-
-        [Test]
-        public async Task RetailCascoCalulcatePremium()
+        [TestFixture]
+        [Parallelizable]
+        public class RetailCascoTest : BaseUITest
         {
-           
-            var (browser, page) = await CreateBrowserAndPage(playwright, "chrome", new BrowserTypeLaunchOptions { Headless = false });
+            private const string ConnectionString = "Server=testserver01;Database=Eagle;User Id=sa_eagle;Password=Pony3201;TrustServerCertificate=True;";
+            private const string UserLogin = "1-1-2-15";
+            private const string UserPassword = "Aa123456789";
 
-            LoginPage loginPage = new LoginPage( page );
-            HomePage homePage = await loginPage.LoginCredentials( "1-1-2-15", "Aa123456789" );
-            await homePage.ClickProducts( new ProductsPage( page ) );
+            private async Task<RetailCascoPage> PrepareRetailCascoPage ( IPage page )
+            {
+                LoginPage loginPage = new LoginPage( page );
+                HomePage homePage = await loginPage.LoginCredentials( UserLogin, UserPassword );
+                await homePage.ClickProducts( new ProductsPage( page ) );
 
-            RetailCascoPage retailCascoPage = new RetailCascoPage( page );
-            await retailCascoPage.ClikcFillVechRegNumInputAsync( RetailCascoPage.GetRandomVehicleRegNr() );
+                var retailCascoPage = new RetailCascoPage( page );
+                await retailCascoPage.ClikcFillVechRegNumInputAsync( RetailCascoPage.GetRandomVehicleRegNr() );
+                await retailCascoPage.ClikcFillVechCertNumInputAsync( RetailCascoPage.GetRandomVehicleCerNr() );
 
-            await retailCascoPage.ClikcFillVechCertNumInputAsync(  RetailCascoPage.GetRandomVehicleCerNr() );
-          
-            DatabaseHelper dbHelper = new DatabaseHelper(); 
+                var vehicle = new DatabaseHelper().GetRandomVehicleFromView( ConnectionString );
 
-            var vehicle = dbHelper.GetRandomVehicleFromView( "Server=testserver01;Database=Eagle;User Id=sa_eagle;Password=Pony3201;TrustServerCertificate=True;" );
+                await retailCascoPage.SelectVehicleBrand( vehicle.BrandName );
+                await retailCascoPage.SelectVehicleModel( vehicle.ModelName );
+                await retailCascoPage.SelectVehicleSubModel( vehicle.SubModel );
+                await retailCascoPage.ClikcFillVechManfactYearInputAsync( ( DateTime.Now.Year - vehicle.YearOld ).ToString() );
+                await retailCascoPage.SelectVehicleUsage();
+                await retailCascoPage.SelectDeducible();
 
-            
+                await retailCascoPage.ClickSectionByNameAsync( page, "Sığorta" );
+                await retailCascoPage.SearchPolicyHolderInfo( "4Z6NNQZ", "AA", "6095063", "994512068475" );
 
-            // 1. Select Brand
-          
-            
-            await retailCascoPage.SelectVehicleBrand(vehicle.BrandName );
+                return retailCascoPage;
+            }
 
-            // 2. Select Model
-          
-            await retailCascoPage.SelectVehicleModel( vehicle.ModelName );
+            [Test]
+            public async Task RetailCasco_CalculatePremium_ShouldBeGreaterThanZero ()
+            {
+                var (_, page) = await CreateBrowserAndPage( playwright, "chrome", new BrowserTypeLaunchOptions { Headless = false } );
 
-            // 3. Select Submodel
-           
-            await retailCascoPage.SelectVehicleSubModel( vehicle.SubModel );
+                var cascoPage = await PrepareRetailCascoPage( page );
+                await cascoPage.ClickToCalculatePremiumAsync();
 
-            // 4. Select Year (age) — assuming Year dropdown is visible and interactive
-            
+                decimal premium = await cascoPage.GetBasePremiumAsync();
+                Assert.That( premium, Is.GreaterThan( 0m ), $"Premium should be greater than zero but was: {premium}" );
+            }
 
-         
-            await retailCascoPage.ClikcFillVechManfactYearInputAsync(( DateTime.Now.Year - vehicle.YearOld ).ToString() );
+            [Test]
+            public async Task RetailCasco_PhysicalPersonPolicyIssue_ShouldSucceed ()
+            {
+                var (_, page) = await CreateBrowserAndPage( playwright, "chrome", new BrowserTypeLaunchOptions { Headless = false } );
 
-            await retailCascoPage.SelectVehicleUsage();
-            await retailCascoPage.SelectDeducible();
+                var cascoPage = await PrepareRetailCascoPage( page );
+                await cascoPage.ClickToCalculatePremiumAsync();
+             
 
-            await retailCascoPage.ClickSectionByNameAsync(page,"Sığorta");
+                 bool isSuccess = await cascoPage.ClicktoIssuePolicyAndCheckSuccessAsync();
 
-            await retailCascoPage.SearchPolicyHolderInfo( "4Z6NNQZ", "AA", "6095063" ,"994512068475");
-
-            await retailCascoPage.ClickToCalculatePremiumAsync();
-
-            decimal premium = await retailCascoPage.GetBasePremiumAsync();
-         
-            Assert.That(premium, Is.GreaterThan( 0m ), $"Premium calcualted: {premium}" );
+            Assert.That( isSuccess, Is.True, "Success message should appear after issuing the policy." );
+            }
         }
-
     }
 
 
-}
+
+
