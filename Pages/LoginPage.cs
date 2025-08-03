@@ -14,7 +14,7 @@ namespace IMSAutomation.Pages
            
         }
 
-        public async Task<HomePage> LoginCredentials( string username, string password )
+        public async Task<BasePage> LoginCredentials( string username, string password )
         {
             await page.Locator( "//*[@id=\"UserName\"]" ).FillAsync(username);
             await page.Locator( "//*[@id=\"Password\"]" ).FillAsync(password);
@@ -22,12 +22,14 @@ namespace IMSAutomation.Pages
 
             // Wait until the button is visible and enabled
             await loginButton.WaitForAsync( new() { State = WaitForSelectorState.Visible } );
-
+           
             // Click it
             await loginButton.ClickAsync();
 
-
-            return new HomePage(page);
+            if ( await page.Locator( "#OTPCode" ).IsVisibleAsync() )
+                return new OtpPage( page );   // OTP challenge detected
+            else
+                return new HomePage( page );  // login successful, no OTP
         }
     }
 }

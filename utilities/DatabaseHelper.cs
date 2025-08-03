@@ -7,6 +7,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
 using IMSAutomation.Entities;
+using System.Data;
 
 namespace IMSAutomation.utilities
 {
@@ -43,6 +44,99 @@ namespace IMSAutomation.utilities
 
             return vehicle;
         }
+
+        public (bool Enabled, TimeSpan? OtpSkipTime) GetUserOtpPermission ( string username, string connectionString )
+        {
+            const string sql = @";WITH ParamValues AS (
+    SELECT
+        rc.role_composition_oid,
+        uo.u_logon_name,
+        ParamName = pp.name,
+        ParamValue =
+            ISNULL(
+                STUFF((
+                    SELECT N', ' + pv1.value
+                    FROM Security.ParameterValue AS pv1
+                    WHERE pv1.parameter_oid = pp.parameter_oid
+                      AND pv1.role_composition_oid = rc.role_composition_oid
+                    ORDER BY pv1.[index]
+                    FOR XML PATH(N''), TYPE
+                ).value('.', 'nvarchar(max)'), 1, 2, N''),
+                pp.default_value
+            )
+    FROM Security.Role AS r
+    JOIN Security.RoleComposition AS rc ON r.role_oid = rc.role_oid
+    JOIN Security.Permission AS p ON p.permission_oid = rc.permission_oid
+    LEFT JOIN Security.PermissionParameter AS pp ON pp.permission_oid = p.permission_oid
+    LEFT JOIN Classifiers.LOB AS lob ON lob.lob_oid = p.lob_oid
+    LEFT JOIN Security.UserRole ur ON ur.role_oid = rc.role_oid
+    LEFT JOIN UserObject uo ON uo.user_guid = ur.user_guid
+    WHERE p.name = 'LoginWebIMS'
+      AND pp.name IN ('OtpVerificationEnabled','OtpTrustWindowInHours')
+      AND uo.u_logon_name = @UserId
+)
+SELECT
+    OtpVerificationEnabled =
+        MAX(CASE WHEN ParamName = 'OtpVerificationEnabled' THEN ParamValue END),
+    OtpTrustWindowInHours =
+        MAX(CASE WHEN ParamName = 'OtpTrustWindowInHours' THEN ParamValue END)
+FROM ParamValues;
+";
+
+            using var conn = new SqlConnection( connectionString );
+            using var cmd = new SqlCommand( sql, conn );
+            cmd.Parameters.AddWithValue( "@UserId", username );
+
+            conn.Open();
+            using var reader = cmd.ExecuteReader();
+
+            if ( reader.Read() )
+            {
+                // Enabled flag
+                string enabledRaw = reader.IsDBNull( 0 ) ? "False" : reader.GetString( 0 );
+                bool enabled = enabledRaw.Equals( "true", StringComparison.OrdinalIgnoreCase );
+
+                // OtpTrustWindowInHours → convert to TimeSpan
+                TimeSpan? skip = null;
+                if ( !reader.IsDBNull( 1 ) )
+                {
+                    string raw = reader.GetString( 1 );
+                    if ( int.TryParse( raw, out int hours ) )
+                        skip = TimeSpan.FromHours( hours );
+                }
+
+                return (enabled, skip);
+            }
+
+            return (false, null);
+        }
+
+
+        public DateTime? GetLastLoginDate ( string username, string connectionString )
+        {
+            using var conn = new SqlConnection( connectionString );
+            using var cmd = new SqlCommand(
+                @"SELECT d.last_login_date
+            FROM Eagle.dbo.UserObject o
+            JOIN Eagle.dbo.UserTrustedDevice d
+              ON o.user_guid = d.user_guid
+           WHERE o.u_logon_name = @UserId", conn );
+
+            cmd.Parameters.AddWithValue( "@UserId", username );
+
+            conn.Open();
+            object? result = cmd.ExecuteScalar();
+
+            return result == null || result == DBNull.Value
+                ? ( DateTime? )null
+                : ( DateTime )result;
+        }
+
+
+
+
+
+
     }
 }
 

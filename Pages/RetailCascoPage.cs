@@ -71,12 +71,12 @@ namespace IMSAutomation.Pages
             var input = page.Locator( "#Vehicle_RegNr" );
             var validationMessage = page.Locator( "span[data-valmsg-for='Vehicle.RegNr']" );
 
-           
+
             await input.ClickAsync();
             await input.FillAsync( regNum );
             await input.BlurAsync();
-              
-           
+
+
             if ( string.IsNullOrEmpty( regNum ) )
             {
                 // Assert required validation message shown
@@ -164,48 +164,48 @@ namespace IMSAutomation.Pages
             }
         }
 
-            public async Task SelectDeducible ()
+        public async Task SelectDeducible ()
+        {
+            // Type a character to trigger the dropdown
+            await page.FillAsync( "#RetailCascoObject_DeductibleText", "" );
+
+            // Wait for at least one visible item in the dropdown
+            await page.WaitForSelectorAsync( ".ui-menu-item >> visible=true" );
+
+            // Get all visible dropdown items
+            var items = await page.QuerySelectorAllAsync( ".ui-menu-item >> visible=true" );
+
+            if ( items.Count > 0 )
             {
-                // Type a character to trigger the dropdown
-                await page.FillAsync( "#RetailCascoObject_DeductibleText", "" );
+                var random = new Random();
+                int index = random.Next( items.Count );
 
-                // Wait for at least one visible item in the dropdown
-                await page.WaitForSelectorAsync( ".ui-menu-item >> visible=true" );
-
-                // Get all visible dropdown items
-                var items = await page.QuerySelectorAllAsync( ".ui-menu-item >> visible=true" );
-
-                if ( items.Count > 0 )
-                {
-                    var random = new Random();
-                    int index = random.Next( items.Count );
-
-                    // Click the randomly selected item
-                    await items[index].ClickAsync();
-                }
-                else
-                {
-                    throw new Exception( "No visible items found in the dropdown." );
-                }
-
-
-
+                // Click the randomly selected item
+                await items[index].ClickAsync();
             }
+            else
+            {
+                throw new Exception( "No visible items found in the dropdown." );
+            }
+
+
+
+        }
 
         public async Task ClickSectionByNameAsync ( IPage page, string sectionTitle )
         {
             // Find the section-title <h2> by the inner <span> text
-            var section = page.Locator( "h2.section-title" ).Filter( new() { HasTextRegex = new Regex( sectionTitle) } );
+            var section = page.Locator( "h2.section-title" ).Filter( new() { HasTextRegex = new Regex( sectionTitle ) } );
 
             // Click the expand/collapse icon inside that section
             await section.Locator( ".sect-icon" ).ClickAsync();
         }
 
-        public async Task SearchPolicyHolderInfo ( string pin,string series,string idNumber, string phone)
+        public async Task SearchPolicyHolderInfo ( string pin, string series, string idNumber, string phone )
         {
             await page.Locator( "#Client_SearchParameters_PIN" ).ClickAsync();
             await page.Locator( "#Client_SearchParameters_PIN" ).PressSequentiallyAsync( pin );
-            
+
             await page.Locator( "#Client_SearchParameters_IdSeries" ).ClickAsync();
             await page.Locator( "#Client_SearchParameters_IdSeries" ).PressSequentiallyAsync( series );
 
@@ -227,27 +227,7 @@ namespace IMSAutomation.Pages
             await page.WaitForLoadStateAsync( LoadState.NetworkIdle );
         }
 
-       /* public async Task<decimal> GetBasePremiumAsync ()
-        {
-            var basePremiumInput = page.Locator( "#PolicyDiscount_BasePremium" );
 
-          
-         
-           await Assertions.Expect( basePremiumInput ).Not.ToHaveValueAsync( "0,00" );
-          
-
-
-            var valueStr = await basePremiumInput.InputValueAsync(); // e.g., "0,00"
-
-            var culture = new System.Globalization.CultureInfo( "az-Latn-AZ" );
-
-            // Parse to decimal using the appropriate culture
-            if ( decimal.TryParse( valueStr, System.Globalization.NumberStyles.Any, culture, out var value ) )
-                return value;
-
-            throw new FormatException( $"Could not parse base premium value: '{valueStr}'" );
-
-        }*/
 
 
         public async Task<decimal> GetBasePremiumAsync ()
@@ -274,6 +254,24 @@ namespace IMSAutomation.Pages
             // Still "0,00" after waiting — return 0 to fail in test assertion
             return 0m;
         }
+
+
+        public async Task<bool> ClicktoIssuePolicyAndCheckSuccessAsync ()
+        {
+            await page.Locator( "input[type='submit'][value='Polisi burax']" ).ClickAsync();
+           
+
+            // Locate the success message
+            var successMessage = page.Locator( "p.success" );
+            // Wait for the success message to appear
+            await Assertions.Expect( page.Locator( "p.success" ) ).ToBeVisibleAsync();
+
+            // Return whether it's visible
+            return await successMessage.IsVisibleAsync();
+
+        }
+
+        
 
 
     }
