@@ -133,6 +133,55 @@ FROM ParamValues;
         }
 
 
+        public (string OtpCode, bool SmsSent) GetLatestOtpCode ( string username, string connectionString )
+        {
+            const string sql = @"
+;WITH U AS (
+    SELECT TOP (1)
+        uo.user_guid,
+        d_last_login_date = COALESCE(uo.d_last_login_date, '19000101')
+    FROM dbo.UserObject uo
+    WHERE uo.u_logon_name = @UserId
+),
+Q AS (  -- latest queue row after last login (may be none)
+    SELECT TOP (1)
+        created_timestamp
+    FROM dbo.[Queue] q
+    JOIN U ON q.related_object_id = U.user_guid
+    WHERE q.created_timestamp IS NOT NULL
+      AND q.created_timestamp > U.d_last_login_date
+    ORDER BY q.created_timestamp DESC
+)
+SELECT TOP (1)
+    o.otp_code,
+    SmsSent = CASE WHEN Q.created_timestamp IS NOT NULL THEN 1 ELSE 0 END
+FROM dbo.UserOTP o
+JOIN U ON o.user_guid = U.user_guid
+LEFT JOIN Q ON 1=1
+WHERE o.status = 0
+  AND o.generated_time > U.d_last_login_date
+  AND (Q.created_timestamp IS NULL OR o.generated_time < Q.created_timestamp)
+ORDER BY o.generated_time DESC;";
+
+            using var conn = new SqlConnection( connectionString );
+            using var cmd = new SqlCommand( sql, conn );
+            cmd.Parameters.Add( "@UserId", SqlDbType.NVarChar, 128 ).Value = username;
+            conn.Open();
+
+            using var reader = cmd.ExecuteReader( CommandBehavior.SingleRow );
+            if ( !reader.Read() )
+            {
+                return (string.Empty, false); // no OTP at all
+            }
+
+            string otp = reader.IsDBNull( 0 ) ? string.Empty : reader.GetString( 0 );
+            bool smsSent = !reader.IsDBNull( 1 ) && reader.GetInt32( 1 ) == 1;
+
+            return (otp, smsSent);
+        }
+
+
+
 
 
 

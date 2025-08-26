@@ -6,7 +6,7 @@ using System.Security.AccessControl;
 using System.Text;
 using System.Threading.Tasks;
 using Azure;
-using IMSAutomation.pages;
+
 using IMSAutomation.Pages;
 using Microsoft.Playwright;
 using IMSAutomation.utilities;
@@ -26,10 +26,17 @@ using IMSAutomation.utilities;
             private async Task<RetailCascoPage> PrepareRetailCascoPage ( IPage page )
             {
                 LoginPage loginPage = new LoginPage( page );
-                HomePage homePage = await loginPage.LoginCredentials( UserLogin, UserPassword );
+                BasePage resultPage = await loginPage.LoginCredentials( UserLogin, UserPassword );
+            if ( resultPage is HomePage homePage )
+            {
                 await homePage.ClickProducts( new ProductsPage( page ) );
+            }
+            else
+            {
+                Assert.Fail( "Expected HomePage after successful login." );
+            }
 
-                var retailCascoPage = new RetailCascoPage( page );
+            var retailCascoPage = new RetailCascoPage( page );
                 await retailCascoPage.ClikcFillVechRegNumInputAsync( RetailCascoPage.GetRandomVehicleRegNr() );
                 await retailCascoPage.ClikcFillVechCertNumInputAsync( RetailCascoPage.GetRandomVehicleCerNr() );
 
