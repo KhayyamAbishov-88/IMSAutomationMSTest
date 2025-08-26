@@ -7,7 +7,7 @@ using IMSAutomation.Pages;
 using IMSAutomation.testcases;
 using Microsoft.Playwright;
 
-namespace IMSAutomation.pages
+namespace IMSAutomation.Pages
 
 {
     internal class HomePage : BasePage

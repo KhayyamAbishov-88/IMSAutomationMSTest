@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using IMSAutomation.pages;
 using Microsoft.Playwright;
+using IMSAutomation.Pages;
 
-namespace IMSAutomation.Pages
-{
     internal class OtpPage : BasePage
     {
 
@@ -28,4 +26,4 @@ namespace IMSAutomation.Pages
         }
 
     }
-}
+

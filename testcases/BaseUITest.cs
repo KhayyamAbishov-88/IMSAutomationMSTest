@@ -23,6 +23,7 @@ namespace IMSAutomation.testcases
         [OneTimeSetUp]
         public async Task BeforeAllTests()
         {
+            
 
         }
 
@@ -31,7 +32,7 @@ namespace IMSAutomation.testcases
         {
            
             playwright = await Playwright.CreateAsync();
-            LoginPage loginPage = new LoginPage(null);
+          LoginPage loginPage = new LoginPage(null);
 
 
         }

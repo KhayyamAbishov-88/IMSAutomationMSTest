@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.AccessControl;
 using System.Text;
 using System.Threading.Tasks;
-using IMSAutomation.pages;
+
 using Microsoft.Playwright;
 namespace IMSAutomation.Pages
 {
@@ -26,10 +27,23 @@ namespace IMSAutomation.Pages
             // Click it
             await loginButton.ClickAsync();
 
-            if ( await page.Locator( "#OTPCode" ).IsVisibleAsync() )
-                return new OtpPage( page );   // OTP challenge detected
+            await page.WaitForLoadStateAsync( LoadState.NetworkIdle );
+            // or
+            await page.WaitForLoadStateAsync( LoadState.DOMContentLoaded );
+
+            // After login button click
+            if ( await page.Locator( "form[action='/WebIMS/Account/VerifyOTP']" ).IsVisibleAsync() )
+            {
+                // OTP challenge page is active
+                return new OtpPage( page );
+            }
             else
-                return new HomePage( page );  // login successful, no OTP
+            {
+                // Logged in directly (home page, no OTP)
+                return new HomePage( page );
+            }
+
+           
         }
     }
 }
