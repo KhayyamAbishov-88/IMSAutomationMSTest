@@ -10,47 +10,13 @@ using IMSAutomation.utilities;
 using System.Text.RegularExpressions;
 namespace IMSAutomation.testcases
 {
-<<<<<<< HEAD
-    [TestFixture, Parallelizable( ParallelScope.Self )]
-=======
     [TestFixture, Parallelizable( ParallelScope.None )]
->>>>>>> 31705eea39f2f74da96cce933e5263bcd785dc07
     internal class LoginPageValidation : BaseUITest
     {
         private const string ConnectionString = "Server=testserver01;Database=Eagle;User Id=sa_eagle;Password=Pony3201;TrustServerCertificate=True;";
         private const string UserLogin = "5-5-5-15";
         private const string UserPassword = "Pasyolka88";
 
-<<<<<<< HEAD
-         [Test,NonParallelizable]
-          public async Task LoginWithValidCredentials ()
-          {
-              // using var playwright = await Playwright.CreateAsync();
-              var (browser, page) = await CreateBrowserAndPage( playwright, "chrome", new BrowserTypeLaunchOptions { Headless = false } );
-            var dbHelper = new DatabaseHelper();
-            var loginPage = new LoginPage( page );
-            var afterLoginPage = await loginPage.LoginCredentials( UserLogin, UserPassword );
-            var  (otp, _) = dbHelper.GetLatestOtpCode( UserLogin, ConnectionString );
-            if ( afterLoginPage is HomePage homePage )
-              {
-                  await homePage.ClickProducts( new ProductsPage( page ) );
-              }
-              else
-              {
-                  OtpPage otpPage = new OtpPage( page );
-                 await otpPage.ClickToLoginViaOtp( otp );
-              }
-              await page.WaitForLoadStateAsync( LoadState.NetworkIdle );
-              //   await homePage.ClickProducts( new ProductsPage( page ) );
-
-          }
-
-      
-
-
-
-
-=======
        // [Test]
       /*  public async Task LoginWithValidCredentials ()
         {
@@ -83,15 +49,12 @@ namespace IMSAutomation.testcases
             DateTime? optFistLoginDate = dbHelper.GetLastLoginDate( UserLogin, ConnectionString );
             var loginPage = new LoginPage( page );
             var afterLoginPage = await loginPage.LoginCredentials( UserLogin, UserPassword );
->>>>>>> 31705eea39f2f74da96cce933e5263bcd785dc07
 
             bool shouldRequireOtp = otpEnabled && (
             otpSkipHours == null ||
             ( optFistLoginDate.HasValue &&
             optFistLoginDate.Value.Add( otpSkipHours.Value ) < DateTime.Now ) );
 
-<<<<<<< HEAD
-=======
             if ( shouldRequireOtp )
             {
                 // NUnit: object type is OtpPage
@@ -136,6 +99,5 @@ namespace IMSAutomation.testcases
 
 
 
->>>>>>> 31705eea39f2f74da96cce933e5263bcd785dc07
     }
 }
