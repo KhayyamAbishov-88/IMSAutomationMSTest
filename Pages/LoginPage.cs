@@ -4,28 +4,33 @@ using System.Linq;
 using System.Security.AccessControl;
 using System.Text;
 using System.Threading.Tasks;
-
 using Microsoft.Playwright;
+
 namespace IMSAutomation.Pages
 {
     internal class LoginPage : BasePage
     {
-        public LoginPage(IPage page) : base(page)
+        public LoginPage ( IPage page ) : base( page )
         {
-           
+
         }
 
-        public async Task<BasePage> LoginCredentials( string username, string password )
+
+
+        public async Task<BasePage> LoginCredentials ( string username, string password )
         {
-            await page.Locator( "//*[@id=\"UserName\"]" ).FillAsync(username);
-            await page.Locator( "//*[@id=\"Password\"]" ).FillAsync(password);
+            await page.Locator( "//*[@id=\"UserName\"]" ).FillAsync( username );
+            await page.Locator( "//*[@id=\"Password\"]" ).FillAsync( password );
             var loginButton = page.Locator( "#LoginBtn" );
 
             // Wait until the button is visible and enabled
             await loginButton.WaitForAsync( new() { State = WaitForSelectorState.Visible } );
-           
+
             // Click it
             await loginButton.ClickAsync();
+
+            //click timestamp to get last opt code
+            var afterClick = DateTime.UtcNow;
 
             await page.WaitForLoadStateAsync( LoadState.NetworkIdle );
             // or
@@ -43,7 +48,10 @@ namespace IMSAutomation.Pages
                 return new HomePage( page );
             }
 
-           
+
         }
     }
 }
+
+  
+

@@ -136,32 +136,9 @@ FROM ParamValues;
         public (string OtpCode, bool SmsSent) GetLatestOtpCode ( string username, string connectionString )
         {
             const string sql = @"
-;WITH U AS (
-    SELECT TOP (1)
-        uo.user_guid,
-        d_last_login_date = COALESCE(uo.d_last_login_date, '19000101')
-    FROM dbo.UserObject uo
-    WHERE uo.u_logon_name = @UserId
-),
-Q AS (  -- latest queue row after last login (may be none)
-    SELECT TOP (1)
-        created_timestamp
-    FROM dbo.[Queue] q
-    JOIN U ON q.related_object_id = U.user_guid
-    WHERE q.created_timestamp IS NOT NULL
-      AND q.created_timestamp > U.d_last_login_date
-    ORDER BY q.created_timestamp DESC
-)
-SELECT TOP (1)
-    o.otp_code,
-    SmsSent = CASE WHEN Q.created_timestamp IS NOT NULL THEN 1 ELSE 0 END
-FROM dbo.UserOTP o
-JOIN U ON o.user_guid = U.user_guid
-LEFT JOIN Q ON 1=1
-WHERE o.status = 0
-  AND o.generated_time > U.d_last_login_date
-  AND (Q.created_timestamp IS NULL OR o.generated_time < Q.created_timestamp)
-ORDER BY o.generated_time DESC;";
+;select top 1 o.otp_code, SmsSent =  CASE WHEN Q.created_timestamp IS NOT NULL THEN 1 ELSE 0 END  from dbo.UserObject u 
+	left join  dbo.UserOTP o on u.user_guid=o.user_guid
+	left join dbo.Queue q on o.user_guid=q.related_object_id where q.recipient=u.u_tel_number and u.u_logon_name= @UserId and u.d_last_login_date<q.created_timestamp order by o.id desc;";
 
             using var conn = new SqlConnection( connectionString );
             using var cmd = new SqlCommand( sql, conn );

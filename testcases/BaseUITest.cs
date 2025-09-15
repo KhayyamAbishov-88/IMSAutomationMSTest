@@ -10,7 +10,7 @@ using IMSAutomation.utilities;
 using IMSAutomation.Pages;
 using Microsoft.EntityFrameworkCore;
 
-namespace IMSAutomation.testcases
+namespace IMSAutomation.TestCases
 {
     public class BaseUITest
 

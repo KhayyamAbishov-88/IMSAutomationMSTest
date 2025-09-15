@@ -8,7 +8,7 @@ using IMSAutomation.Pages;
 using Microsoft.Playwright;
 using IMSAutomation.utilities;
 using System.Text.RegularExpressions;
-namespace IMSAutomation.testcases
+namespace IMSAutomation.TestCases
 {
     [TestFixture, Parallelizable( ParallelScope.None )]
     internal class LoginPageValidation : BaseUITest

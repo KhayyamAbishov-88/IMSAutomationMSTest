@@ -13,7 +13,7 @@ using IMSAutomation.utilities;
     
 
 
-    namespace IMSAutomation.testcases
+    namespace IMSAutomation.TestCases
     {
         [TestFixture]
         [Parallelizable]

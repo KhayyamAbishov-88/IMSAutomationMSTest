@@ -8,7 +8,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Playwright;
-
 using NUnit.Framework.Interfaces;
 using static OfficeOpenXml.ExcelErrorValue;
 
@@ -259,7 +258,7 @@ namespace IMSAutomation.Pages
         public async Task<bool> ClicktoIssuePolicyAndCheckSuccessAsync ()
         {
             await page.Locator( "input[type='submit'][value='Polisi burax']" ).ClickAsync();
-           
+
 
             // Locate the success message
             var successMessage = page.Locator( "p.success" );
@@ -271,8 +270,10 @@ namespace IMSAutomation.Pages
 
         }
 
-        
+
 
 
     }
 }
+   
+

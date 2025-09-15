@@ -9,16 +9,16 @@ using Microsoft.Playwright;
 using IMSAutomation.utilities;
 using System.Text.RegularExpressions;
 
-namespace IMSAutomation.testcases
+namespace IMSAutomation.TestCases
 {
-    [TestFixture, Parallelizable( ParallelScope.Self )]
+    [TestFixture, Parallelizable( ParallelScope.None )]
     internal class OptPageValidation : BaseUITest
     {
         private const string ConnectionString = "Server=testserver01;Database=Eagle;User Id=sa_eagle;Password=Pony3201;TrustServerCertificate=True;";
-        private const string UserLogin = "1-1-2-15";
-        private const string UserPassword = "Aa123456789";
+        private const string UserLogin = "5-5-5-15";
+        private const string UserPassword = "Pasyolka88";
 
-        [Test, NonParallelizable, Order( 1 )]
+        [Test, Order( 1 )]
         public async Task RedirectedToOtpPageSuccessfully ()
         {
             // using var playwright = await Playwright.CreateAsync();
@@ -59,7 +59,7 @@ namespace IMSAutomation.testcases
 
         }
 
-        [Test, NonParallelizable, Order( 2 )]
+        [Test, Order( 2 )]
         public async Task OtpSmsSendedSuccessfully ()
         {
 
@@ -67,7 +67,8 @@ namespace IMSAutomation.testcases
             // var (browser, page) = await CreateBrowserAndPage( playwright, "chrome", new BrowserTypeLaunchOptions { Headless = false } );
             var dbHelper = new DatabaseHelper();
             var (otp, smsSent) = dbHelper.GetLatestOtpCode( UserLogin, ConnectionString );
-
+            TestContext.WriteLine (smsSent);
+            TestContext.WriteLine($"output is {otp}" );
 
             if ( !smsSent )
             {
