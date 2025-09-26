@@ -15,7 +15,7 @@ namespace IMSAutomation.Pages
 
         }
 
-
+       
 
         public async Task<BasePage> LoginCredentials ( string username, string password )
         {
@@ -30,24 +30,28 @@ namespace IMSAutomation.Pages
             await loginButton.ClickAsync();
 
             //click timestamp to get last opt code
-            var afterClick = DateTime.UtcNow;
-
+           
             await page.WaitForLoadStateAsync( LoadState.NetworkIdle );
             // or
             await page.WaitForLoadStateAsync( LoadState.DOMContentLoaded );
 
+      
+
             // After login button click
-            if ( await page.Locator( "form[action='/WebIMS/Account/VerifyOTP']" ).IsVisibleAsync() )
+            if ( await page.Locator( "form[action$='/Account/VerifyOTP']" ).IsVisibleAsync() )
             {
                 // OTP challenge page is active
-                return new OtpPage( page );
+                return (new OtpPage( page));
             }
-            else
+              else if ( await page.Locator( "a[href$='/Account/Logout' i]" ).IsVisibleAsync() )
             {
                 // Logged in directly (home page, no OTP)
-                return new HomePage( page );
+                return (new HomePage( page ));
             }
-
+            else
+            {  
+                throw new Exception( "Unexpected page state after login attempt." );
+            }
 
         }
     }

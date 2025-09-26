@@ -13,9 +13,11 @@ namespace IMSAutomation.TestCases
     [TestFixture, Parallelizable( ParallelScope.None )]
     internal class LoginPageValidation : BaseUITest
     {
-        private const string ConnectionString = "Server=testserver01;Database=Eagle;User Id=sa_eagle;Password=Pony3201;TrustServerCertificate=True;";
+        private const string ConnectionString = "Server=test5;Database=Eagle;User Id=sa_eagle;Password=Pony3201;TrustServerCertificate=True;";
         private const string UserLogin = "5-5-5-15";
-        private const string UserPassword = "Pasyolka88";
+        private const string UserPassword = "Sinoptik88";
+        private DateTime clickLoginDateTime;
+      
 
        // [Test]
       /*  public async Task LoginWithValidCredentials ()

@@ -10,10 +10,11 @@ namespace IMSAutomation.Pages
     internal class BasePage
     {
         public IPage page;
-
-        public BasePage ( IPage page )
+      
+        public BasePage ( IPage page)
         {
             this.page = page;
+            
         }
 
     }

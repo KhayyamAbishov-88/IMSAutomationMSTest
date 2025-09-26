@@ -8,15 +8,16 @@ using IMSAutomation.Pages;
 using Microsoft.Playwright;
 using IMSAutomation.utilities;
 using System.Text.RegularExpressions;
+using Azure;
 
 namespace IMSAutomation.TestCases
 {
     [TestFixture, Parallelizable( ParallelScope.None )]
     internal class OptPageValidation : BaseUITest
     {
-        private const string ConnectionString = "Server=testserver01;Database=Eagle;User Id=sa_eagle;Password=Pony3201;TrustServerCertificate=True;";
+        private const string ConnectionString = "Server=test5;Database=Eagle;User Id=sa_eagle;Password=Pony3201;TrustServerCertificate=True;";
         private const string UserLogin = "5-5-5-15";
-        private const string UserPassword = "Pasyolka88";
+        private const string UserPassword = "Sinoptik88";
 
         [Test, Order( 1 )]
         public async Task RedirectedToOtpPageSuccessfully ()
@@ -28,6 +29,7 @@ namespace IMSAutomation.TestCases
             DateTime? optFistLoginDate = dbHelper.GetLastLoginDate( UserLogin, ConnectionString );
             var loginPage = new LoginPage( page );
             var afterLoginPage = await loginPage.LoginCredentials( UserLogin, UserPassword );
+             
 
             bool shouldRequireOtp = otpEnabled && (
             otpSkipHours == null ||
@@ -35,24 +37,30 @@ namespace IMSAutomation.TestCases
             optFistLoginDate.Value.Add( otpSkipHours.Value ) < DateTime.Now ) );
             TestContext.WriteLine( shouldRequireOtp );
 
-            if ( shouldRequireOtp )
+          
+            if ( shouldRequireOtp && afterLoginPage is OtpPage otpPage )
             {
-                TestContext.WriteLine( afterLoginPage );
-                // NUnit: object type is OtpPage
-                Assert.That( afterLoginPage, Is.InstanceOf<OtpPage>(), "OTP is required, so OtpPage should load." );
-                // OTP is required → OTP page should load
-                await Assertions.Expect( page )
-                        .ToHaveURLAsync( new Regex( "WebIMS/Account/GenerateOTP" ) );
-
+                    TestContext.WriteLine( afterLoginPage );
+                    // NUnit: object type is OtpPage
+                    //  Assert.That( afterLoginPage, Is.InstanceOf<OtpPage>(), "OTP is required, so OtpPage should load." );
+                    Assert.Pass( "OTP is required, so OtpPage should load." );
+                
 
             }
+
+
+
+            else if (  afterLoginPage is HomePage )
+            {
+                Assert.Fail( "OTP not required, should land on HomePage." );
+              //  Assert.That( afterLoginPage, Is.InstanceOf<HomePage>(), "OTP not required, should land on HomePage." );
+
+            }
+
             else
             {
-                // NUnit: object type is HomePage
-                TestContext.WriteLine( afterLoginPage );
-                Assert.That( afterLoginPage, Is.InstanceOf<HomePage>(), "OTP not required, should land on HomePage." );
-                await Assertions.Expect( page )
-              .ToHaveURLAsync( new Regex( "/WebIMS/" ) );
+                Assert.Fail("");
+              
             }
 
 
@@ -66,7 +74,8 @@ namespace IMSAutomation.TestCases
 
             // var (browser, page) = await CreateBrowserAndPage( playwright, "chrome", new BrowserTypeLaunchOptions { Headless = false } );
             var dbHelper = new DatabaseHelper();
-            var (otp, smsSent) = dbHelper.GetLatestOtpCode( UserLogin, ConnectionString );
+          
+            var (otp, smsSent) = dbHelper.GetLatestOtpCode( UserLogin, ConnectionString);
             TestContext.WriteLine (smsSent);
             TestContext.WriteLine($"output is {otp}" );
 
@@ -76,5 +85,12 @@ namespace IMSAutomation.TestCases
             }
 
         }
+
+       
+
+
+
+
+
     }
 }

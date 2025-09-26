@@ -136,13 +136,15 @@ FROM ParamValues;
         public (string OtpCode, bool SmsSent) GetLatestOtpCode ( string username, string connectionString )
         {
             const string sql = @"
-;select top 1 o.otp_code, SmsSent =  CASE WHEN Q.created_timestamp IS NOT NULL THEN 1 ELSE 0 END  from dbo.UserObject u 
+;select o.otp_code, SmsSent =  CASE WHEN Q.created_timestamp IS NOT NULL THEN 1 ELSE 0 END  from dbo.UserObject u 
 	left join  dbo.UserOTP o on u.user_guid=o.user_guid
-	left join dbo.Queue q on o.user_guid=q.related_object_id where q.recipient=u.u_tel_number and u.u_logon_name= @UserId and u.d_last_login_date<q.created_timestamp order by o.id desc;";
+	left join dbo.Queue q on o.user_guid=q.related_object_id where q.recipient=u.u_tel_number and u.u_logon_name= @UserId and u.d_last_login_date<q.created_timestamp
+	and u.d_last_login_date<o.generated_time order by o.id desc;";
 
             using var conn = new SqlConnection( connectionString );
             using var cmd = new SqlCommand( sql, conn );
             cmd.Parameters.Add( "@UserId", SqlDbType.NVarChar, 128 ).Value = username;
+           
             conn.Open();
 
             using var reader = cmd.ExecuteReader( CommandBehavior.SingleRow );
@@ -156,6 +158,10 @@ FROM ParamValues;
 
             return (otp, smsSent);
         }
+
+
+
+
 
 
 

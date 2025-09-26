@@ -68,7 +68,7 @@ namespace IMSAutomation.TestCases
             var page = await context.NewPageAsync();
             await page.SetViewportSizeAsync( 1280, 720 );
 
-            string url = "https://testserver01-polis.ateshgah.com/WebIMS/Account/Login";
+            string url = "https://test5-polis.ateshgah.com/WebIMS/Account/Login";
             await page.GotoAsync( url );
 
             return (browser, page);
@@ -78,7 +78,7 @@ namespace IMSAutomation.TestCases
         [TearDown]
         public async Task AfterEachTest ()
         {
-           await Task.Delay( 5000 ); // Optional delay to observe the state after each test
+           await Task.Delay( 1000 ); // Optional delay to observe the state after each test
         }
 
         [OneTimeTearDown]

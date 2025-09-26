@@ -22,7 +22,7 @@ using IMSAutomation.utilities;
             private const string ConnectionString = "Server=testserver01;Database=Eagle;User Id=sa_eagle;Password=Pony3201;TrustServerCertificate=True;";
             private const string UserLogin = "1-1-2-15";
             private const string UserPassword = "Aa123456789";
-
+            private DateTime DateTime ;
             private async Task<RetailCascoPage> PrepareRetailCascoPage ( IPage page )
             {
                 LoginPage loginPage = new LoginPage( page );
