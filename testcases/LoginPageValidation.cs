@@ -17,87 +17,39 @@ namespace IMSAutomation.TestCases
         private const string UserLogin = "5-5-5-15";
         private const string UserPassword = "Sinoptik88";
         private DateTime clickLoginDateTime;
-      
 
-       // [Test]
-      /*  public async Task LoginWithValidCredentials ()
-        {
-            // using var playwright = await Playwright.CreateAsync();
-            var (browser, page) = await CreateBrowserAndPage( playwright, "chrome", new BrowserTypeLaunchOptions { Headless = false } );
 
-            var loginPage = new LoginPage( page );
-            var afterLoginPage = await loginPage.LoginCredentials( UserLogin, UserPassword );
-            if ( afterLoginPage is HomePage homePage )
-            {
-                await homePage.ClickProducts( new ProductsPage( page ) );
-            }
-            else
-            {
-                OtpPage otpPage = new OtpPage( page );
-                otpPage.ClickToLoginViaOtp()
-            }
-            await page.WaitForLoadStateAsync( LoadState.NetworkIdle );
-            //   await homePage.ClickProducts( new ProductsPage( page ) );
 
-        }*/
+
+
 
         [Test]
-        public async Task RedirectedToOtpPageSuccessfully ()
+        public async Task Login_WithInvalidUsernameAsync ()
         {
-            // using var playwright = await Playwright.CreateAsync();
-            var (browser, page) = await CreateBrowserAndPage( playwright, "chrome", new BrowserTypeLaunchOptions { Headless = false } );
-            var dbHelper = new DatabaseHelper();
-            var (otpEnabled, otpSkipHours) = dbHelper.GetUserOtpPermission( UserLogin, ConnectionString );
-            DateTime? optFistLoginDate = dbHelper.GetLastLoginDate( UserLogin, ConnectionString );
+            var browserAndPage = await CreateBrowserAndPage( playwright, "chrome", new BrowserTypeLaunchOptions { Headless = false } );
+
+
+           IBrowser browser= browserAndPage.Item1;
+           IPage page= browserAndPage.Item2;
             var loginPage = new LoginPage( page );
-            var afterLoginPage = await loginPage.LoginCredentials( UserLogin, UserPassword );
-
-            bool shouldRequireOtp = otpEnabled && (
-            otpSkipHours == null ||
-            ( optFistLoginDate.HasValue &&
-            optFistLoginDate.Value.Add( otpSkipHours.Value ) < DateTime.Now ) );
-
-            if ( shouldRequireOtp )
-            {
-                // NUnit: object type is OtpPage
-                Assert.That( afterLoginPage, Is.InstanceOf<OtpPage>(), "OTP is required, so OtpPage should load." );
-                // OTP is required → OTP page should load
-                await Assertions.Expect( page )
-                        .ToHaveURLAsync( new Regex( "WebIMS/Account/GenerateOTP" ) );
+            await loginPage.LoginAsync( "444", "Pasyolka88" );
 
 
-            }
-            else
-            {
-                // NUnit: object type is HomePage
-                Assert.That( afterLoginPage, Is.InstanceOf<HomePage>(), "OTP not required, should land on HomePage." );
-                await Assertions.Expect( page )
-              .ToHaveURLAsync( new Regex( "/WebIMS/" ) );
-            }
 
+            var liLocator = page.Locator( "div[data-valmsg-summary='true'] li" );
 
-           
-        }
+            bool hasError = await loginPage.HasValidationErrorAsync();
+            string errorText = await loginPage.GetValidationErrorTextAsync();
 
-        [Test]
-        public async Task OtpSmsSendedSuccessfully ()
-        {
+            TestContext.WriteLine( hasError );
+            estContext.WriteLine( errorText );
+            Assert.That( hasError, Is.True, "Validation message should not be visible initially." );
+            Assert.That( errorText, Does.Contain( "The user name or password provided is incorrect." ) );
 
-            // using var playwright = await Playwright.CreateAsync();
-            var (browser, page) = await CreateBrowserAndPage( playwright, "chrome", new BrowserTypeLaunchOptions { Headless = false } );
-            var dbHelper = new DatabaseHelper();
-           var (otp, smsSent) = dbHelper.GetLatestOtpCode( UserLogin, ConnectionString );
-
-
-            if ( !smsSent )
-            {
-                Assert.Fail( "SMS was not sent for this user." );
-            }
-
-        }
 
 
 
+        }
 
 
 

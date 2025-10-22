@@ -23,7 +23,7 @@ namespace IMSAutomation.TestCases
         public async Task RedirectedToOtpPageSuccessfully ()
         {
             // using var playwright = await Playwright.CreateAsync();
-            var (browser, page) = await CreateBrowserAndPage( playwright, "chrome", new BrowserTypeLaunchOptions { Headless = false } );
+            (IBrowser browser, IPage page) = await CreateBrowserAndPage( playwright, "chrome", new BrowserTypeLaunchOptions { Headless = false } );
             var dbHelper = new DatabaseHelper();
             var (otpEnabled, otpSkipHours) = dbHelper.GetUserOtpPermission( UserLogin, ConnectionString );
             DateTime? optFistLoginDate = dbHelper.GetLastLoginDate( UserLogin, ConnectionString );
@@ -42,7 +42,7 @@ namespace IMSAutomation.TestCases
             {
                     TestContext.WriteLine( afterLoginPage );
                     // NUnit: object type is OtpPage
-                    //  Assert.That( afterLoginPage, Is.InstanceOf<OtpPage>(), "OTP is required, so OtpPage should load." );
+                    //Assert.That( afterLoginPage, Is.InstanceOf<OtpPage>(), "OTP is required, so OtpPage should load." );
                     Assert.Pass( "OTP is required, so OtpPage should load." );
                 
 
@@ -59,7 +59,7 @@ namespace IMSAutomation.TestCases
 
             else
             {
-                Assert.Fail("");
+                Assert.Fail("lll");
               
             }
 
