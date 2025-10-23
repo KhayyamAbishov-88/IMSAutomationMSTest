@@ -21,7 +21,7 @@ namespace IMSAutomation.Pages
 
 
 
-        public async Task<BasePage> LoginCredentials ( string username, string password )
+        public async Task<BasePage> RedirectPageAfterLogin ( string username, string password )
         {
             await page.Locator( "//*[@id=\"UserName\"]" ).FillAsync( username );
             await page.Locator( "//*[@id=\"Password\"]" ).FillAsync( password );
@@ -87,7 +87,7 @@ namespace IMSAutomation.Pages
         /// Returns true only if the <li> is visible and has non-empty text.
         /// </summary>
 
-        public async Task<bool> HasValidationErrorAsync ()
+        public async Task<bool> HasLoginValidationErrorAsync ()
         {
             var validationError = page.Locator( "div[data-valmsg-summary='true'] li" );
 
@@ -104,7 +104,7 @@ namespace IMSAutomation.Pages
         /// <summary>
         /// Returns the text of the validation error (empty string if none).
         /// </summary>
-        public async Task<string> GetValidationErrorTextAsync ()
+        public async Task<string> GetLoginValidationErrorTextAsync ()
         {
             var validationError = page.Locator( "div[data-valmsg-summary='true'] li" );
             if ( await validationError.CountAsync() == 0 )

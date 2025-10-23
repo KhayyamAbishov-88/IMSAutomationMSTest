@@ -26,7 +26,7 @@ using IMSAutomation.utilities;
             private async Task<RetailCascoPage> PrepareRetailCascoPage ( IPage page )
             {
                 LoginPage loginPage = new LoginPage( page );
-                BasePage resultPage = await loginPage.LoginCredentials( UserLogin, UserPassword );
+                BasePage resultPage = await loginPage.RedirectPageAfterLogin( UserLogin, UserPassword );
             if ( resultPage is HomePage homePage )
             {
                 await homePage.ClickProducts( new ProductsPage( page ) );

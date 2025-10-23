@@ -26,28 +26,23 @@ namespace IMSAutomation.TestCases
         [Test]
         public async Task Login_WithInvalidUsernameAsync ()
         {
-            var browserAndPage = await CreateBrowserAndPage( playwright, "chrome", new BrowserTypeLaunchOptions { Headless = false } );
+            var (browser,page) = await CreateBrowserAndPage( playwright, "chrome", new BrowserTypeLaunchOptions { Headless = false } );
 
 
-           IBrowser browser= browserAndPage.Item1;
-           IPage page= browserAndPage.Item2;
             var loginPage = new LoginPage( page );
-            await loginPage.LoginAsync( "444", "Pasyolka88" );
+            await loginPage.LoginAsync( "5-5-5-15", "Sinoptik88" );
 
 
 
-            var liLocator = page.Locator( "div[data-valmsg-summary='true'] li" );
+           
 
-            bool hasError = await loginPage.HasValidationErrorAsync();
-            string errorText = await loginPage.GetValidationErrorTextAsync();
+            bool hasValidation = await loginPage.HasLoginValidationErrorAsync();
+            string valdationText = await loginPage.GetLoginValidationErrorTextAsync();
 
-            TestContext.WriteLine( hasError );
-            estContext.WriteLine( errorText );
-            Assert.That( hasError, Is.True, "Validation message should not be visible initially." );
-            Assert.That( errorText, Does.Contain( "The user name or password provided is incorrect." ) );
-
-
-
+            TestContext.WriteLine( hasValidation );
+            TestContext.WriteLine( valdationText );
+            Assert.That( hasValidation, Is.True, "Validation message should not be visible initially." );
+            Assert.That( valdationText, Does.Contain( "The user name or password provided is incorrect." ) );
 
         }
 

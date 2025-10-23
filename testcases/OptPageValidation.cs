@@ -16,19 +16,19 @@ namespace IMSAutomation.TestCases
     internal class OptPageValidation : BaseUITest
     {
         private const string ConnectionString = "Server=test5;Database=Eagle;User Id=sa_eagle;Password=Pony3201;TrustServerCertificate=True;";
-        private const string UserLogin = "5-5-5-15";
-        private const string UserPassword = "Sinoptik88";
+        private const string OtpUserLogin = "5-5-5-15";
+        private const string OtpUserPassword = "Sinoptik88";
 
         [Test, Order( 1 )]
         public async Task RedirectedToOtpPageSuccessfully ()
         {
             // using var playwright = await Playwright.CreateAsync();
-            (IBrowser browser, IPage page) = await CreateBrowserAndPage( playwright, "chrome", new BrowserTypeLaunchOptions { Headless = false } );
+            var (browser,page) = await CreateBrowserAndPage( playwright, "chrome", new BrowserTypeLaunchOptions { Headless = false } );
             var dbHelper = new DatabaseHelper();
-            var (otpEnabled, otpSkipHours) = dbHelper.GetUserOtpPermission( UserLogin, ConnectionString );
-            DateTime? optFistLoginDate = dbHelper.GetLastLoginDate( UserLogin, ConnectionString );
+            var (otpEnabled, otpSkipHours) = dbHelper.GetUserOtpPermission( OtpUserLogin, ConnectionString );
+            DateTime? optFistLoginDate = dbHelper.GetLastLoginDate( OtpUserLogin, ConnectionString );
             var loginPage = new LoginPage( page );
-            var afterLoginPage = await loginPage.LoginCredentials( UserLogin, UserPassword );
+            var afterLoginPage = await loginPage.RedirectPageAfterLogin( OtpUserLogin, OtpUserPassword );
              
 
             bool shouldRequireOtp = otpEnabled && (
@@ -75,7 +75,7 @@ namespace IMSAutomation.TestCases
             // var (browser, page) = await CreateBrowserAndPage( playwright, "chrome", new BrowserTypeLaunchOptions { Headless = false } );
             var dbHelper = new DatabaseHelper();
           
-            var (otp, smsSent) = dbHelper.GetLatestOtpCode( UserLogin, ConnectionString);
+            var (otp, smsSent) = dbHelper.GetLatestOtpCode( OtpUserLogin, ConnectionString);
             TestContext.WriteLine (smsSent);
             TestContext.WriteLine($"output is {otp}" );
 
@@ -85,6 +85,9 @@ namespace IMSAutomation.TestCases
             }
 
         }
+
+
+
 
        
 
