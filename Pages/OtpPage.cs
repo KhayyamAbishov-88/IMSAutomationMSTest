@@ -16,15 +16,38 @@ namespace IMSAutomation.Pages
 
         }
 
-        public async Task<HomePage> ClickToLoginViaOtp ( string otpCode )
+        public async Task<HomePage> RedirectToHomePageAfterOpt ( string otpCode )
         {
             await page.Locator( "#OTPCode" ).FillAsync( otpCode );
             var verifyButton = page.Locator( "input[name='VerifyOTP']" );
             await verifyButton.ClickAsync();
 
+            await page.WaitForLoadStateAsync( LoadState.NetworkIdle );
+            // or
+            await page.WaitForLoadStateAsync( LoadState.DOMContentLoaded );
 
+            if ( await page.Locator( "a[href$='/Account/Logout' i]" ).IsVisibleAsync() )
+            {
+                // Logged in  (home page, with OTP)
+                return ( new HomePage( page ) );
+            }
+            else
+            {
+                throw new Exception( "Unexpected page state after login attempt." );
+            }
 
-            return new HomePage( page );
+           
+        }
+
+        public async Task EnterOtpCode ( string otpCode )
+        {
+            await page.Locator( "#OTPCode" ).FillAsync( otpCode );
+        }
+
+        public async Task ClickSubmitOtpButton ()
+        {
+            var verifyButton = page.Locator( "input[name='VerifyOTP']" );
+            await verifyButton.ClickAsync();
         }
 
         public async Task<bool> HasOtpAlreadySendValidationErrorAsync ()

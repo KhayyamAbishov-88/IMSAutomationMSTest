@@ -43,10 +43,10 @@ namespace IMSAutomation.TestCases
 
 
         [Test]
-        public async Task RedirectedToOtpPageSuccessfully ()
+        public async Task LoginToOtpPageSuccessfully ()
         {
             var dbHelper = new DatabaseHelper();
-           await dbHelper.RemoveLastOtpCode( ConnectionString, OtpUserLogin );
+            await dbHelper.RemoveLastOtpCode( ConnectionString, OtpUserLogin );
             var afterLoginPage = await LoginAndRedirectAsync();
 
             if ( afterLoginPage is OtpPage )
@@ -62,10 +62,10 @@ namespace IMSAutomation.TestCases
         public async Task OtpSmsSendedSuccessfully ()
         {
             var dbHelper = new DatabaseHelper();
-          await  dbHelper.RemoveLastOtpCode( ConnectionString, OtpUserLogin );
+            await dbHelper.RemoveLastOtpCode( ConnectionString, OtpUserLogin );
             var afterLoginPage = await LoginAndRedirectAsync();
-          
-           
+
+
             var (otpGeneratedTime, otp, smsSent) = dbHelper.GetLatestOtpCode( OtpUserLogin, ConnectionString );
             TestContext.WriteLine( smsSent );
             TestContext.WriteLine( otpGeneratedTime );
@@ -79,14 +79,14 @@ namespace IMSAutomation.TestCases
         }
 
 
-        
+
 
 
         [Test]
         public async Task ValidateOtpAlreadySendAsync ()
         {
             var dbHelper = new DatabaseHelper();
-          await  dbHelper.RemoveLastOtpCode( ConnectionString,OtpUserLogin );
+            await dbHelper.RemoveLastOtpCode( ConnectionString, OtpUserLogin );
 
             // Step 1: Login and navigate to the OTP page
             var afterLoginPage = await LoginAndRedirectAsync();
@@ -97,7 +97,7 @@ namespace IMSAutomation.TestCases
             }
 
             // Step 2: Get latest OTP info
-            
+
             var (otpGeneratedTime, otp, smsSent) = dbHelper.GetLatestOtpCode( OtpUserLogin, ConnectionString );
 
             if ( otpGeneratedTime is null )
@@ -114,7 +114,7 @@ namespace IMSAutomation.TestCases
             }
 
             // Step 3: Attempt to login again while OTP still active
-        
+
             var (browser, page) = await CreateBrowserAndPage( playwright, "chrome", new BrowserTypeLaunchOptions { Headless = false } );
 
             var loginPage = new LoginPage( page );
@@ -123,13 +123,13 @@ namespace IMSAutomation.TestCases
             // Step 4: Validate the OTP resend error message
             if ( redirectedPage is OtpPage otpResendPage )
             {
-                bool hasValidation =  await otpResendPage.HasOtpAlreadySendValidationErrorAsync();
+                bool hasValidation = await otpResendPage.HasOtpAlreadySendValidationErrorAsync();
                 string validationText = await otpResendPage.GetOtpAlreadySendValidationErrorTextAsync();
 
                 TestContext.WriteLine( $"Validation Present: {hasValidation}" );
                 TestContext.WriteLine( $"Validation Message: {validationText}" );
 
-                Assert.That( hasValidation,Is.True, "Expected OTP already sent validation error not found." );
+                Assert.That( hasValidation, Is.True, "Expected OTP already sent validation error not found." );
             }
             else
             {
@@ -137,5 +137,43 @@ namespace IMSAutomation.TestCases
             }
         }
 
+        [Test]
+        public async Task LoginWithValidOtpAsync ()
+        {
+            var dbHelper = new DatabaseHelper();
+            await dbHelper.RemoveLastOtpCode( ConnectionString, OtpUserLogin );
+
+            // Step 1: Login and navigate to the OTP page
+            var afterLoginPage = await LoginAndRedirectAsync();
+            if ( afterLoginPage is not OtpPage otpPage )
+            {
+                Assert.Fail( "Did not land on OTP page." );
+                return;
+            }
+
+            // Step 2: Get latest OTP info
+            var (otpGeneratedTime, otp, smsSent) = dbHelper.GetLatestOtpCode( OtpUserLogin, ConnectionString );
+
+            if ( string.IsNullOrEmpty( otp ) )
+            {
+                Assert.Fail( "No OTP found for the user." );
+                return;
+            }
+
+            // Step 3: Enter the correct OTP and submit
+            var afterOtpPage = await otpPage.RedirectToHomePageAfterOpt( otp );
+
+
+            // Step 4: Validate successful login
+            if ( afterOtpPage is HomePage )
+            {
+                Assert.Pass( "Successfully logged in with correct OTP." );
+            }
+            else
+            {
+                Assert.Fail( "Failed to log in with correct OTP." );
+            }
+
+        }
     }
 }
