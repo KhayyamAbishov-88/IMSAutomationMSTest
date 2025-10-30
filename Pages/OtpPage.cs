@@ -27,7 +27,36 @@ namespace IMSAutomation.Pages
             return new HomePage( page );
         }
 
-       
+        public async Task<bool> HasOtpAlreadySendValidationErrorAsync ()
+        {
+            var validationError = page.Locator( "#PageMessageBox>p.error" );
+
+            await page.WaitForSelectorAsync( "div#PageMessageBox p.error", new() { State = WaitForSelectorState.Visible } );
+            if ( await validationError.CountAsync() == 0 )
+                return false;
+
+            bool isVisible = await validationError.IsVisibleAsync();
+            string text = ( await validationError.TextContentAsync() )?.Trim();
+
+            return isVisible && !string.IsNullOrEmpty( text );
+        }
+
+        public async Task<string> GetOtpAlreadySendValidationErrorTextAsync ()
+        {
+            var validationError = page.Locator( "#PageMessageBox>p.error" );
+
+            if ( await validationError.CountAsync() == 0 )
+                return string.Empty;
+
+            return ( await validationError.TextContentAsync() )?.Trim() ?? string.Empty;
+        }
+
+        public async Task CloseAsync()
+        {
+            await page.CloseAsync();
+        }
+
+
 
     }
 }

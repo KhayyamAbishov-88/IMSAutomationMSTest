@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using NUnit.Framework;
+using NUnit.Framework.Interfaces;
 using IMSAutomation.Pages;
 using Microsoft.Playwright;
 using IMSAutomation.utilities;
@@ -19,65 +20,56 @@ namespace IMSAutomation.TestCases
         private const string OtpUserLogin = "5-5-5-15";
         private const string OtpUserPassword = "Sinoptik88";
 
-        [Test, Order( 1 )]
-        public async Task RedirectedToOtpPageSuccessfully ()
+
+        public async Task<BasePage> LoginAndRedirectAsync ()
         {
-            // using var playwright = await Playwright.CreateAsync();
-            var (browser,page) = await CreateBrowserAndPage( playwright, "chrome", new BrowserTypeLaunchOptions { Headless = false } );
+            var (browser, page) = await CreateBrowserAndPage( playwright, "chrome", new BrowserTypeLaunchOptions { Headless = false } );
             var dbHelper = new DatabaseHelper();
             var (otpEnabled, otpSkipHours) = dbHelper.GetUserOtpPermission( OtpUserLogin, ConnectionString );
             DateTime? optFistLoginDate = dbHelper.GetLastLoginDate( OtpUserLogin, ConnectionString );
             var loginPage = new LoginPage( page );
             var afterLoginPage = await loginPage.RedirectPageAfterLogin( OtpUserLogin, OtpUserPassword );
-             
 
             bool shouldRequireOtp = otpEnabled && (
-            otpSkipHours == null ||
-            ( optFistLoginDate.HasValue &&
-            optFistLoginDate.Value.Add( otpSkipHours.Value ) < DateTime.Now ) );
+                otpSkipHours == null ||
+                ( optFistLoginDate.HasValue &&
+                 optFistLoginDate.Value.Add( otpSkipHours.Value ) < DateTime.Now )
+            );
+
             TestContext.WriteLine( shouldRequireOtp );
 
-          
-            if ( shouldRequireOtp && afterLoginPage is OtpPage otpPage )
-            {
-                    TestContext.WriteLine( afterLoginPage );
-                    // NUnit: object type is OtpPage
-                    //Assert.That( afterLoginPage, Is.InstanceOf<OtpPage>(), "OTP is required, so OtpPage should load." );
-                    Assert.Pass( "OTP is required, so OtpPage should load." );
-                
-
-            }
+            return afterLoginPage;
+        }
 
 
+        [Test]
+        public async Task RedirectedToOtpPageSuccessfully ()
+        {
+            var dbHelper = new DatabaseHelper();
+           await dbHelper.RemoveLastOtpCode( ConnectionString, OtpUserLogin );
+            var afterLoginPage = await LoginAndRedirectAsync();
 
-            else if (  afterLoginPage is HomePage )
-            {
+            if ( afterLoginPage is OtpPage )
+                Assert.Pass( "OTP is required, so OtpPage should load." );
+            else if ( afterLoginPage is HomePage )
                 Assert.Fail( "OTP not required, should land on HomePage." );
-              //  Assert.That( afterLoginPage, Is.InstanceOf<HomePage>(), "OTP not required, should land on HomePage." );
-
-            }
-
             else
-            {
-                Assert.Fail("lll");
-              
-            }
-
-
+                Assert.Fail( "Unexpected page type" );
 
         }
 
-        [Test, Order( 2 )]
+        [Test]
         public async Task OtpSmsSendedSuccessfully ()
         {
-
-
-            // var (browser, page) = await CreateBrowserAndPage( playwright, "chrome", new BrowserTypeLaunchOptions { Headless = false } );
             var dbHelper = new DatabaseHelper();
+          await  dbHelper.RemoveLastOtpCode( ConnectionString, OtpUserLogin );
+            var afterLoginPage = await LoginAndRedirectAsync();
           
-            var (otp, smsSent) = dbHelper.GetLatestOtpCode( OtpUserLogin, ConnectionString);
-            TestContext.WriteLine (smsSent);
-            TestContext.WriteLine($"output is {otp}" );
+           
+            var (otpGeneratedTime, otp, smsSent) = dbHelper.GetLatestOtpCode( OtpUserLogin, ConnectionString );
+            TestContext.WriteLine( smsSent );
+            TestContext.WriteLine( otpGeneratedTime );
+            TestContext.WriteLine( $"output is {otp}" );
 
             if ( !smsSent )
             {
@@ -87,13 +79,63 @@ namespace IMSAutomation.TestCases
         }
 
 
+        
 
 
-       
+        [Test]
+        public async Task ValidateOtpAlreadySendAsync ()
+        {
+            var dbHelper = new DatabaseHelper();
+          await  dbHelper.RemoveLastOtpCode( ConnectionString,OtpUserLogin );
 
+            // Step 1: Login and navigate to the OTP page
+            var afterLoginPage = await LoginAndRedirectAsync();
+            if ( afterLoginPage is not OtpPage otpPage )
+            {
+                Assert.Fail( "Did not land on OTP page." );
+                return;
+            }
 
+            // Step 2: Get latest OTP info
+            
+            var (otpGeneratedTime, otp, smsSent) = dbHelper.GetLatestOtpCode( OtpUserLogin, ConnectionString );
 
+            if ( otpGeneratedTime is null )
+            {
+                Assert.Fail( "No OTP generation time found for the user." );
+                return;
+            }
 
+            double otpActiveInterval = ( DateTime.Now - otpGeneratedTime.Value ).TotalMinutes;
+            if ( otpActiveInterval > 5 )
+            {
+                Assert.Inconclusive( "OTP is expired (older than 5 minutes)." );
+                return;
+            }
+
+            // Step 3: Attempt to login again while OTP still active
+        
+            var (browser, page) = await CreateBrowserAndPage( playwright, "chrome", new BrowserTypeLaunchOptions { Headless = false } );
+
+            var loginPage = new LoginPage( page );
+            var redirectedPage = await loginPage.RedirectPageAfterLogin( OtpUserLogin, OtpUserPassword );
+
+            // Step 4: Validate the OTP resend error message
+            if ( redirectedPage is OtpPage otpResendPage )
+            {
+                bool hasValidation =  await otpResendPage.HasOtpAlreadySendValidationErrorAsync();
+                string validationText = await otpResendPage.GetOtpAlreadySendValidationErrorTextAsync();
+
+                TestContext.WriteLine( $"Validation Present: {hasValidation}" );
+                TestContext.WriteLine( $"Validation Message: {validationText}" );
+
+                Assert.That( hasValidation,Is.True, "Expected OTP already sent validation error not found." );
+            }
+            else
+            {
+                Assert.Fail( "Expected to be redirected to OTP page after second login attempt." );
+            }
+        }
 
     }
 }

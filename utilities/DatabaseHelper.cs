@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 using IMSAutomation.Entities;
 using System.Data;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 
 namespace IMSAutomation.utilities
 {
@@ -133,32 +134,59 @@ FROM ParamValues;
         }
 
 
-        public (string OtpCode, bool SmsSent) GetLatestOtpCode ( string username, string connectionString )
+        public (DateTime? OtpGenerateTime,string OtpCode, bool SmsSent ) GetLatestOtpCode ( string username, string connectionString )
         {
             const string sql = @"
-;select o.otp_code, SmsSent =  CASE WHEN Q.created_timestamp IS NOT NULL THEN 1 ELSE 0 END  from dbo.UserObject u 
+;select  o.generated_time,o.otp_code, SmsSent =  CASE WHEN Q.created_timestamp IS NOT NULL THEN 1 ELSE 0 END  from dbo.UserObject u 
 	left join  dbo.UserOTP o on u.user_guid=o.user_guid
 	left join dbo.Queue q on o.user_guid=q.related_object_id where q.recipient=u.u_tel_number and u.u_logon_name= @UserId and u.d_last_login_date<q.created_timestamp
 	and u.d_last_login_date<o.generated_time order by o.id desc;";
 
             using var conn = new SqlConnection( connectionString );
             using var cmd = new SqlCommand( sql, conn );
-            cmd.Parameters.Add( "@UserId", SqlDbType.NVarChar, 128 ).Value = username;
-           
+            cmd.Parameters.AddWithValue( "@UserId", username );
+
             conn.Open();
 
             using var reader = cmd.ExecuteReader( CommandBehavior.SingleRow );
             if ( !reader.Read() )
             {
-                return (string.Empty, false); // no OTP at all
+                return (null,string.Empty, false ); // no OTP at all
             }
 
-            string otp = reader.IsDBNull( 0 ) ? string.Empty : reader.GetString( 0 );
-            bool smsSent = !reader.IsDBNull( 1 ) && reader.GetInt32( 1 ) == 1;
+            DateTime? otpGeneratedTime = reader.IsDBNull( 0 ) ? ( DateTime? )null : reader.GetDateTime( 0 );
 
-            return (otp, smsSent);
+            string otp = reader.IsDBNull( 1) ? string.Empty : reader.GetString( 1);
+            bool smsSent = !reader.IsDBNull( 2 ) && reader.GetInt32( 2 ) == 1;
+           
+            return (otpGeneratedTime,otp, smsSent );
         }
 
+       public async Task  RemoveLastOtpCode (string connectionString, string username  )
+        {
+            const string sql = @"
+DECLARE @LastOtpId INT;
+DECLARE @UserGuid UNIQUEIDENTIFIER;
+
+SELECT TOP 1 
+    @LastOtpId = o.id,
+    @UserGuid = o.user_guid
+FROM dbo.UserOTP o
+JOIN dbo.UserObject uo ON o.user_guid = uo.user_guid
+WHERE uo.u_logon_name = @UserName
+ORDER BY o.generated_time DESC;
+
+DELETE FROM dbo.Queue WHERE related_object_id = @UserGuid;
+DELETE FROM dbo.UserOTP WHERE id = @LastOtpId;";
+
+            using var conn = new SqlConnection( connectionString );
+            await conn.OpenAsync();
+
+            using var cmd = new SqlCommand( sql, conn );
+            cmd.Parameters.AddWithValue( "@UserName", username );
+
+            await cmd.ExecuteNonQueryAsync();
+        }
 
 
 

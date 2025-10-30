@@ -14,7 +14,7 @@ namespace IMSAutomation.TestCases
     internal class LoginPageValidation : BaseUITest
     {
         private const string ConnectionString = "Server=test5;Database=Eagle;User Id=sa_eagle;Password=Pony3201;TrustServerCertificate=True;";
-        private const string UserLogin = "5-5-5-15";
+        private const string InvalidUserLogin = "5-5-5-17";
         private const string UserPassword = "Sinoptik88";
         private DateTime clickLoginDateTime;
 
@@ -30,15 +30,9 @@ namespace IMSAutomation.TestCases
 
 
             var loginPage = new LoginPage( page );
-            await loginPage.LoginAsync( "5-5-5-15", "Sinoptik88" );
-
-
-
-           
-
+            await loginPage.LoginAsync( InvalidUserLogin, UserPassword );
             bool hasValidation = await loginPage.HasLoginValidationErrorAsync();
             string valdationText = await loginPage.GetLoginValidationErrorTextAsync();
-
             TestContext.WriteLine( hasValidation );
             TestContext.WriteLine( valdationText );
             Assert.That( hasValidation, Is.True, "Validation message should not be visible initially." );

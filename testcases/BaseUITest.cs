@@ -16,23 +16,23 @@ namespace IMSAutomation.TestCases
 
     {
         protected IPlaywright playwright;
-      
+        protected IBrowser browser;
         IConfiguration configuration;
-       
+
 
         [OneTimeSetUp]
-        public async Task BeforeAllTests()
+        public async Task BeforeAllTests ()
         {
-            
+
 
         }
 
         [SetUp]
-        public async Task BeforeEachtest()
+        public async Task BeforeEachtest ()
         {
-           
+
             playwright = await Playwright.CreateAsync();
-          LoginPage loginPage = new LoginPage(null);
+            LoginPage loginPage = new LoginPage( null );
 
 
         }
@@ -70,7 +70,7 @@ namespace IMSAutomation.TestCases
 
             string url = "https://test5-polis.ateshgah.com/WebIMS/Account/Login";
             await page.GotoAsync( url );
-           
+
             return (browser, page);
         }
 
@@ -78,7 +78,7 @@ namespace IMSAutomation.TestCases
         [TearDown]
         public async Task AfterEachTest ()
         {
-           await Task.Delay( 1000 ); // Optional delay to observe the state after each test
+            await Task.Delay( 1000 ); // Optional delay to observe the state after each test
         }
 
         [OneTimeTearDown]
@@ -87,6 +87,16 @@ namespace IMSAutomation.TestCases
             if ( playwright != null )
             {
                 playwright.Dispose();
+            }
+        }
+
+
+        protected async Task CloseBrowserAsync ()
+        {
+            if ( browser != null )
+            {
+                await browser.CloseAsync();
+                browser = null;
             }
         }
     }
