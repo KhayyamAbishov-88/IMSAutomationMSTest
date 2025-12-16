@@ -20,33 +20,54 @@ namespace IMSAutomation.TestCases
         private const string OtpUserLogin = "5-5-5-15";
         private const string OtpUserPassword = "Sinoptik88";
 
+        private async Task CheckTrustThisDeviceAsync ()
+        {
+            var (browser, page) = await CreateBrowserAndPage( playwright, "chrome", new BrowserTypeLaunchOptions { Headless = false } );
+            var loginPage = new LoginPage( page );
+            var dbHelper = new DatabaseHelper();
+            var (optFistLoginDate, deviceId) = await dbHelper.GetLastLoginDateAsync( OtpUserLogin, ConnectionString );
+            if ( deviceId ==  loginPage.GetDeviceFingerprintAsync() ) ;
+        }
 
-        public async Task<BasePage> LoginAndRedirectAsync ()
+        private async Task<BasePage> LoginAndRedirectAsync ()
         {
             var (browser, page) = await CreateBrowserAndPage( playwright, "chrome", new BrowserTypeLaunchOptions { Headless = false } );
             var dbHelper = new DatabaseHelper();
+            
             var (otpEnabled, otpSkipHours) = dbHelper.GetUserOtpPermission( OtpUserLogin, ConnectionString );
-            DateTime? optFistLoginDate = dbHelper.GetLastLoginDate( OtpUserLogin, ConnectionString );
+            var(optFistLoginDate, deviceId)  = await dbHelper.GetLastLoginDateAsync( OtpUserLogin, ConnectionString );
             var loginPage = new LoginPage( page );
             var afterLoginPage = await loginPage.RedirectPageAfterLogin( OtpUserLogin, OtpUserPassword );
 
+
+
             bool shouldRequireOtp = otpEnabled && (
                 otpSkipHours == null ||
-                ( optFistLoginDate.HasValue &&
+                ( optFistLoginDate==null ||
                  optFistLoginDate.Value.Add( otpSkipHours.Value ) < DateTime.Now )
             );
 
-            TestContext.WriteLine( shouldRequireOtp );
+            if ( shouldRequireOtp )
+            {
+                if ( afterLoginPage is OtpPage )
+                {
+                    return ( new OtpPage( page ) );
+                }
+            }
+            else
+            {
+                return new HomePage( page );
+            }
 
             return afterLoginPage;
         }
-
 
         [Test]
         public async Task LoginToOtpPageSuccessfully ()
         {
             var dbHelper = new DatabaseHelper();
             await dbHelper.RemoveLastOtpCode( ConnectionString, OtpUserLogin );
+         await dbHelper.ClearTrustedDevices( ConnectionString, OtpUserLogin );
             var afterLoginPage = await LoginAndRedirectAsync();
 
             if ( afterLoginPage is OtpPage )
@@ -63,6 +84,7 @@ namespace IMSAutomation.TestCases
         {
             var dbHelper = new DatabaseHelper();
             await dbHelper.RemoveLastOtpCode( ConnectionString, OtpUserLogin );
+            await dbHelper.ClearTrustedDevices( ConnectionString, OtpUserLogin );
             var afterLoginPage = await LoginAndRedirectAsync();
 
 
@@ -175,5 +197,46 @@ namespace IMSAutomation.TestCases
             }
 
         }
+
+
+        [Test]
+        public async Task SkipOtpForTrustedDeviceAsync ()
+        {
+            var dbHelper = new DatabaseHelper();
+            await dbHelper.RemoveLastOtpCode( ConnectionString, OtpUserLogin );
+            await dbHelper.ClearTrustedDevices( ConnectionString, OtpUserLogin );
+
+            // Step 1: Login and navigate to the OTP page
+            var afterLoginPage = await LoginAndRedirectAsync();
+            if ( afterLoginPage is not OtpPage otpPage )
+            {
+                Assert.Fail( "Did not land on OTP page." );
+                return;
+            }
+
+            // Step 2: Get latest OTP info
+            var (otpGeneratedTime, otp, smsSent) = dbHelper.GetLatestOtpCode( OtpUserLogin, ConnectionString );
+
+            if ( string.IsNullOrEmpty( otp ) )
+            {
+                Assert.Fail( "No OTP found for the user." );
+                return;
+            }
+
+            // Step 3: Enter the correct OTP and select "Trust this device"
+            await otpPage.EnterOtpCode( otp );
+            // Assume there's a method to check the "Trust this device" checkbox
+            
+            var afterOtpPage = await otpPage.RedirectToHomePageAfterOpt( otp );
+
+            // Step 4: Validate successful login
+            if ( afterOtpPage is HomePage )
+            {
+                Assert.Pass( "Successfully logged in with trusted device option." );
+            }
+            else
+            {
+                Assert.Fail( "Failed to log in with trusted device option." );
+            }
     }
 }

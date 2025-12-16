@@ -113,25 +113,47 @@ FROM ParamValues;
         }
 
 
-        public DateTime? GetLastLoginDate ( string username, string connectionString )
+        public async Task<(DateTime? LastLoginDate, string? DeviceId)> GetLastLoginDateAsync (
+      string username,
+      string connectionString )
         {
-            using var conn = new SqlConnection( connectionString );
-            using var cmd = new SqlCommand(
-                @"SELECT d.last_login_date
-            FROM Eagle.dbo.UserObject o
-            JOIN Eagle.dbo.UserTrustedDevice d
-              ON o.user_guid = d.user_guid
-           WHERE o.u_logon_name = @UserId", conn );
+            await using var conn = new SqlConnection( connectionString );
 
-            cmd.Parameters.AddWithValue( "@UserId", username );
+            await using var cmd = new SqlCommand( @"
+        SELECT TOP 1
+            d.last_login_date,
+            d.device_id
+        FROM Eagle.dbo.UserObject o
+        LEFT JOIN Eagle.dbo.UserTrustedDevice d
+            ON o.user_guid = d.user_guid
+        WHERE o.u_logon_name = @UserId
+        ORDER BY d.last_login_date DESC
+    ", conn );
 
-            conn.Open();
-            object? result = cmd.ExecuteScalar();
+            cmd.Parameters.Add( "@UserId", SqlDbType.NVarChar, 100 ).Value = username;
 
-            return result == null || result == DBNull.Value
-                ? ( DateTime? )null
-                : ( DateTime )result;
+            await conn.OpenAsync();
+
+            await using var reader = await cmd.ExecuteReaderAsync( CommandBehavior.SingleRow );
+
+            if ( await reader.ReadAsync() )
+            {
+                DateTime? lastLoginDate = reader.IsDBNull( 0 )
+                    ? null
+                    : reader.GetDateTime( 0 );
+
+                string? deviceId = reader.IsDBNull( 1 )
+                    ? null
+                    : reader.GetString( 1 );
+
+                return (lastLoginDate, deviceId);
+            }
+
+            return (null, null);
         }
+
+
+
 
 
         public (DateTime? OtpGenerateTime,string OtpCode, bool SmsSent ) GetLatestOtpCode ( string username, string connectionString )
@@ -191,6 +213,25 @@ DELETE FROM dbo.UserOTP WHERE id = @LastOtpId;";
 
 
 
+
+        public async Task ClearTrustedDevices ( string connectionString, string username )
+        {
+            const string sql = @"
+        DELETE FROM dbo.UserTrustedDevice 
+        WHERE user_guid = (
+            SELECT user_guid 
+            FROM dbo.UserObject 
+            WHERE u_logon_name = @UserName
+        );";
+
+            using var conn = new SqlConnection( connectionString );
+            await conn.OpenAsync();
+
+            using var cmd = new SqlCommand( sql, conn );
+            cmd.Parameters.AddWithValue( "@UserName", username );
+
+            await cmd.ExecuteNonQueryAsync();
+        }
 
 
 

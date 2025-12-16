@@ -62,13 +62,20 @@ namespace IMSAutomation.TestCases
             // ✅ Create context with SSL errors ignored
             var context = await browser.NewContextAsync( new BrowserNewContextOptions
             {
-                IgnoreHTTPSErrors = true
+                IgnoreHTTPSErrors = true,
+                AcceptDownloads = false,
+                HasTouch = false,
+                // Don't use any existing storage
+                StorageState = null
             } );
 
+            await context.ClearCookiesAsync();
+
             var page = await context.NewPageAsync();
+            
             await page.SetViewportSizeAsync( 1280, 720 );
 
-            string url = "https://test5-polis.ateshgah.com/WebIMS/Account/Login";
+            string url = "https://testserver02-polis.ateshgah.com/WebIMS/Account/Login";
             await page.GotoAsync( url );
 
             return (browser, page);

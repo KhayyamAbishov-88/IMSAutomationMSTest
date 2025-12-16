@@ -74,6 +74,9 @@ namespace IMSAutomation.Pages
             return ( await validationError.TextContentAsync() )?.Trim() ?? string.Empty;
         }
 
+
+        
+
         public async Task CloseAsync()
         {
             await page.CloseAsync();

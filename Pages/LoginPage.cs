@@ -39,7 +39,16 @@ namespace IMSAutomation.Pages
             // or
             await page.WaitForLoadStateAsync( LoadState.DOMContentLoaded );
 
-
+            //try
+            //{
+            //    await page.Locator( "form[action$='/Account/VerifyOTP'], a[href$='/Account/Logout' i]" )
+            //        .First
+            //        .WaitForAsync( new() { State = WaitForSelectorState.Visible, Timeout = 30000 } );
+            //}
+            //catch ( TimeoutException )
+            //{
+            //    throw new Exception( $"Neither OTP form nor logout link appeared after login. Current URL: {page.Url}" );
+            //}
 
             // After login button click
             if ( await page.Locator( "form[action$='/Account/VerifyOTP']" ).IsVisibleAsync() )
@@ -114,8 +123,13 @@ namespace IMSAutomation.Pages
             return text ?? string.Empty;
         }
 
+        public async Task<string> GetDeviceFingerprintAsync ()
+        {
+            var deviceFingerprintInput = page.Locator( "#DeviceFingerprint" );
+            return await deviceFingerprintInput.InputValueAsync();
 
 
+        }
     }
 }
 
