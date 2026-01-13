@@ -20,22 +20,34 @@ namespace IMSAutomation.TestCases
         private const string OtpUserLogin = "5-5-5-15";
         private const string OtpUserPassword = "Sinoptik88";
 
-        private async Task CheckTrustThisDeviceAsync ()
+        private async Task<BasePage> CheckTrustThisDeviceAsync ()
         {
             var (browser, page) = await CreateBrowserAndPage( playwright, "chrome", new BrowserTypeLaunchOptions { Headless = false } );
             var loginPage = new LoginPage( page );
             var dbHelper = new DatabaseHelper();
+            DateTime currentDate = DateTime.Now;
             var (optFistLoginDate, deviceId) = await dbHelper.GetLastLoginDateAsync( OtpUserLogin, ConnectionString );
-            if ( deviceId ==  loginPage.GetDeviceFingerprintAsync() ) ;
+            var (hasOptPermission, OtpSkipHours ) = await dbHelper.GetUserOtpPermissionAsync( OtpUserLogin, ConnectionString );
+            TimeSpan ? OtpLoginDuration=currentDate - ( DateTime ?)optFistLoginDate;
+            if ( deviceId == await loginPage.GetDeviceFingerprintAsync() )
+            {
+                if ( hasOptPermission is true && OtpLoginDuration?.TotalHours < OtpSkipHours?.TotalHours )
+                {
+                    return new HomePage( page );
+                }
+            }
+            return new OtpPage( page );
+
+
         }
 
         private async Task<BasePage> LoginAndRedirectAsync ()
         {
             var (browser, page) = await CreateBrowserAndPage( playwright, "chrome", new BrowserTypeLaunchOptions { Headless = false } );
             var dbHelper = new DatabaseHelper();
-            
-            var (otpEnabled, otpSkipHours) = dbHelper.GetUserOtpPermission( OtpUserLogin, ConnectionString );
-            var(optFistLoginDate, deviceId)  = await dbHelper.GetLastLoginDateAsync( OtpUserLogin, ConnectionString );
+
+            var (otpEnabled, otpSkipHours) = await dbHelper.GetUserOtpPermissionAsync( OtpUserLogin, ConnectionString );
+            var (optFistLoginDate, deviceId) = await dbHelper.GetLastLoginDateAsync( OtpUserLogin, ConnectionString );
             var loginPage = new LoginPage( page );
             var afterLoginPage = await loginPage.RedirectPageAfterLogin( OtpUserLogin, OtpUserPassword );
 
@@ -43,7 +55,7 @@ namespace IMSAutomation.TestCases
 
             bool shouldRequireOtp = otpEnabled && (
                 otpSkipHours == null ||
-                ( optFistLoginDate==null ||
+                ( optFistLoginDate == null ||
                  optFistLoginDate.Value.Add( otpSkipHours.Value ) < DateTime.Now )
             );
 
@@ -61,6 +73,9 @@ namespace IMSAutomation.TestCases
 
             return afterLoginPage;
         }
+
+
+
 
         [Test]
         public async Task LoginToOtpPageSuccessfully ()
