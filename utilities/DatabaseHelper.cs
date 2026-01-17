@@ -185,6 +185,21 @@ namespace IMSAutomation.utilities
             return (otpGeneratedTime,otp, smsSent );
         }
 
+        public async Task<(DateTime? OtpGenerateTime, string OtpCode, bool SmsSent)> WaitForLatestOtpCode(string username, string connectionString, int timeoutSeconds = 10)
+        {
+            var endTime = DateTime.Now.AddSeconds(timeoutSeconds);
+            while (DateTime.Now < endTime)
+            {
+                var result = GetLatestOtpCode(username, connectionString);
+                if (result.SmsSent)
+                {
+                    return result;
+                }
+                await Task.Delay(500);
+            }
+            return GetLatestOtpCode(username, connectionString);
+        }
+
        public async Task  RemoveLastOtpCode (string connectionString, string username  )
         {
             const string sql = @"

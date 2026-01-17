@@ -103,7 +103,7 @@ namespace IMSAutomation.TestCases
             var afterLoginPage = await LoginAndRedirectAsync();
 
 
-            var (otpGeneratedTime, otp, smsSent) = dbHelper.GetLatestOtpCode( OtpUserLogin, ConnectionString );
+            var (otpGeneratedTime, otp, smsSent) = await dbHelper.WaitForLatestOtpCode( OtpUserLogin, ConnectionString );
             TestContext.WriteLine( smsSent );
             TestContext.WriteLine( otpGeneratedTime );
             TestContext.WriteLine( $"output is {otp}" );
