@@ -16,9 +16,9 @@ namespace IMSAutomation.TestCases
     [TestFixture, Parallelizable( ParallelScope.None )]
     internal class OptPageValidation : BaseUITest
     {
-        private const string ConnectionString = "Server=test5;Database=Eagle;User Id=sa_eagle;Password=Pony3201;TrustServerCertificate=True;";
-        private const string OtpUserLogin = "5-5-5-15";
-        private const string OtpUserPassword = "Sinoptik88";
+        private const string ConnectionString = "Server=testserver01;Database=Eagle;User Id=sa_eagle;Password=Pony3201;TrustServerCertificate=True;";
+        private const string OtpUserLogin = "40-389-1302-10942";
+        private const string OtpUserPassword = "Otp123456789";
 
         private async Task<BasePage> CheckTrustThisDeviceAsync ()
         {
@@ -27,8 +27,8 @@ namespace IMSAutomation.TestCases
             var dbHelper = new DatabaseHelper();
             DateTime currentDate = DateTime.Now;
             var (optFistLoginDate, deviceId) = await dbHelper.GetLastLoginDateAsync( OtpUserLogin, ConnectionString );
-            var (hasOptPermission, OtpSkipHours ) = await dbHelper.GetUserOtpPermissionAsync( OtpUserLogin, ConnectionString );
-            TimeSpan ? OtpLoginDuration=currentDate - ( DateTime ?)optFistLoginDate;
+            var (hasOptPermission, OtpSkipHours) = await dbHelper.GetUserOtpPermissionAsync( OtpUserLogin, ConnectionString );
+            TimeSpan? OtpLoginDuration = currentDate - ( DateTime? )optFistLoginDate;
             if ( deviceId == await loginPage.GetDeviceFingerprintAsync() )
             {
                 if ( hasOptPermission is true && OtpLoginDuration?.TotalHours < OtpSkipHours?.TotalHours )
@@ -74,15 +74,31 @@ namespace IMSAutomation.TestCases
             return afterLoginPage;
         }
 
+        [Test]
+        public async Task CheckIfCanLoginWithTrustedDevice ()
+        {
+            var dbHelper = new DatabaseHelper();
+            await dbHelper.RemoveLastOtpCode( ConnectionString, OtpUserLogin );
+            await dbHelper.ClearTrustedDevices( ConnectionString, OtpUserLogin );
+            var afterLoginPage = await LoginAndRedirectAsync();
 
+            var (hasOptPermission, OtpSkipHours) = await dbHelper.GetUserOtpPermissionAsync( OtpUserLogin, ConnectionString );
+
+            if ( hasOptPermission is true )
+                Assert.Pass( "OTP permission is enabled for this user." );
+            else
+                Assert.Fail( "OTP permission is not enabled for this user." );
+
+        }
 
 
         [Test]
+        [Description( "Verify that Otp enabled user land on OPT page" )]
         public async Task LoginToOtpPageSuccessfully ()
         {
             var dbHelper = new DatabaseHelper();
             await dbHelper.RemoveLastOtpCode( ConnectionString, OtpUserLogin );
-         await dbHelper.ClearTrustedDevices( ConnectionString, OtpUserLogin );
+            await dbHelper.ClearTrustedDevices( ConnectionString, OtpUserLogin );
             var afterLoginPage = await LoginAndRedirectAsync();
 
             if ( afterLoginPage is OtpPage )
@@ -241,7 +257,7 @@ namespace IMSAutomation.TestCases
             // Step 3: Enter the correct OTP and select "Trust this device"
             await otpPage.EnterOtpCode( otp );
             // Assume there's a method to check the "Trust this device" checkbox
-            
+
             var afterOtpPage = await otpPage.RedirectToHomePageAfterOpt( otp );
 
             // Step 4: Validate successful login
@@ -253,5 +269,6 @@ namespace IMSAutomation.TestCases
             {
                 Assert.Fail( "Failed to log in with trusted device option." );
             }
+        }
     }
 }
