@@ -75,7 +75,7 @@ namespace IMSAutomation.TestCases
             
             await page.SetViewportSizeAsync( 1280, 720 );
 
-            string url = "https://testserver02-polis.ateshgah.com/WebIMS/Account/Login";
+            string url = "https://testserver01-polis.ateshgah.com/WebIMS/Account/Login";
             await page.GotoAsync( url );
 
             return (browser, page);
