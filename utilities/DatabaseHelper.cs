@@ -160,10 +160,18 @@ namespace IMSAutomation.utilities
         public (DateTime? OtpGenerateTime,string OtpCode, bool SmsSent ) GetLatestOtpCode ( string username, string connectionString )
         {
             const string sql = @"
-;select  o.generated_time,o.otp_code, SmsSent =  CASE WHEN Q.created_timestamp IS NOT NULL THEN 1 ELSE 0 END  from dbo.UserObject u 
-	left join  dbo.UserOTP o on u.user_guid=o.user_guid
-	left join dbo.Queue q on o.user_guid=q.related_object_id where q.recipient=u.u_tel_number and u.u_logon_name= @UserId and u.d_last_login_date<q.created_timestamp
-	and u.d_last_login_date<o.generated_time order by o.id desc;";
+;with q as ( select SmsSent = CASE WHEN Q.created_timestamp IS NOT NULL THEN 1 ELSE 0 END from dbo.UserObject
+u join dbo.Queue q on u.user_guid=q.related_object_id where q.recipient=u.u_tel_number and 
+u.u_logon_name=@UserId and u.d_last_login_date<q.created_timestamp), o as 
+( select top 1 o.generated_time,o.otp_code from dbo.UserObject u join dbo.UserOTP o on u.user_guid=o.user_guid where
+u.u_logon_name=@UserId  and o.status=0  order by id desc ) 
+SELECT o.generated_time, o.otp_code, q.SmsSent FROM O CROSS JOIN Q
+UNION ALL
+SELECT
+    NULL, NULL, NULL
+WHERE NOT EXISTS (SELECT 1 FROM Q);
+;
+";
 
             using var conn = new SqlConnection( connectionString );
             using var cmd = new SqlCommand( sql, conn );
@@ -185,20 +193,6 @@ namespace IMSAutomation.utilities
             return (otpGeneratedTime,otp, smsSent );
         }
 
-        public async Task<(DateTime? OtpGenerateTime, string OtpCode, bool SmsSent)> WaitForLatestOtpCode(string username, string connectionString, int timeoutSeconds = 10)
-        {
-            var endTime = DateTime.Now.AddSeconds(timeoutSeconds);
-            while (DateTime.Now < endTime)
-            {
-                var result = GetLatestOtpCode(username, connectionString);
-                if (result.SmsSent)
-                {
-                    return result;
-                }
-                await Task.Delay(500);
-            }
-            return GetLatestOtpCode(username, connectionString);
-        }
 
        public async Task  RemoveLastOtpCode (string connectionString, string username  )
         {

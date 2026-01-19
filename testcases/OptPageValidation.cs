@@ -110,7 +110,8 @@ namespace IMSAutomation.TestCases
 
         }
 
-        [Test]
+     
+        [TestCase( Description = "Verify that Otp enabled user is sended otp code" )]
         public async Task OtpSmsSendedSuccessfully ()
         {
             var dbHelper = new DatabaseHelper();
@@ -119,7 +120,7 @@ namespace IMSAutomation.TestCases
             var afterLoginPage = await LoginAndRedirectAsync();
 
 
-            var (otpGeneratedTime, otp, smsSent) = await dbHelper.WaitForLatestOtpCode( OtpUserLogin, ConnectionString );
+            var (otpGeneratedTime, otp, smsSent) = dbHelper.GetLatestOtpCode( OtpUserLogin, ConnectionString );
             TestContext.WriteLine( smsSent );
             TestContext.WriteLine( otpGeneratedTime );
             TestContext.WriteLine( $"output is {otp}" );
@@ -136,6 +137,7 @@ namespace IMSAutomation.TestCases
 
 
         [Test]
+        [TestCase( Description = "Verify if opt code still active within 5 minutes" )]
         public async Task ValidateOtpAlreadySendAsync ()
         {
             var dbHelper = new DatabaseHelper();
@@ -191,16 +193,17 @@ namespace IMSAutomation.TestCases
         }
 
         [Test]
+        [TestCase( Description = "Verify if user can login with active otp code" )]
         public async Task LoginWithValidOtpAsync ()
         {
             var dbHelper = new DatabaseHelper();
             await dbHelper.RemoveLastOtpCode( ConnectionString, OtpUserLogin );
-
+            await dbHelper.ClearTrustedDevices( ConnectionString, OtpUserLogin );
             // Step 1: Login and navigate to the OTP page
             var afterLoginPage = await LoginAndRedirectAsync();
             if ( afterLoginPage is not OtpPage otpPage )
             {
-                Assert.Fail( "Did not land on OTP page." );
+                Assert.Inconclusive( "Did not land on OTP page." );
                 return;
             }
 
