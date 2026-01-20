@@ -8,6 +8,7 @@ using Microsoft.Playwright;
 using IMSAutomation.Exceptions;
 using System.Xml.Linq;
 using RazorEngine;
+using Microsoft.CodeAnalysis;
 
 namespace IMSAutomation.Pages
 {
@@ -126,6 +127,8 @@ namespace IMSAutomation.Pages
         public async Task<string> GetDeviceFingerprintAsync ()
         {
             var deviceFingerprintInput = page.Locator( "#DeviceFingerprint" );
+            await deviceFingerprintInput.WaitForAsync( new() { State = WaitForSelectorState.Attached } );
+
             return await deviceFingerprintInput.InputValueAsync();
 
 
