@@ -131,8 +131,14 @@ namespace IMSAutomation.Pages
 
             return await deviceFingerprintInput.InputValueAsync();
 
-
         }
+
+        public async Task LogoutAsync () 
+        { 
+            var logoutLink =  page.Locator( "a[href='/WebIMS/Account/Logout']" );
+            await logoutLink.ClickAsync();
+        }
+
     }
 }
 

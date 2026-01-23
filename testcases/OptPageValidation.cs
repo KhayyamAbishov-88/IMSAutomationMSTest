@@ -20,7 +20,7 @@ namespace IMSAutomation.TestCases
         private const string OtpUserLogin = "40-389-1302-10942";
         private const string OtpUserPassword = "Otp123456789";
 
-        private async Task<BasePage> CheckTrustThisDeviceAsync ()
+        private async Task<bool> IsLoggedInTrustedDeviceAsync ()
         {
             var (browser, page) = await CreateBrowserAndPage( playwright, "chrome", new BrowserTypeLaunchOptions { Headless = false } );
           
@@ -30,17 +30,17 @@ namespace IMSAutomation.TestCases
             var (hasOptPermission, OtpSkipHours) = await dbHelper.GetUserOtpPermissionAsync( OtpUserLogin, ConnectionString );
             var loginPage = new LoginPage( page );
             var deviceIdFromCookies = await loginPage.GetDeviceFingerprintAsync();
-            var  afterLoginPage = await loginPage.RedirectPageAfterLogin( OtpUserLogin, OtpUserPassword );
+           // var  afterLoginPage = await loginPage.RedirectPageAfterLogin( OtpUserLogin, OtpUserPassword );
             DateTime currentDate = DateTime.Now;
             TimeSpan? OtpLoginDuration = currentDate - ( DateTime? )optFistLoginDate;
             if ( deviceId == deviceIdFromCookies )
             {
                 if ( hasOptPermission is true && OtpLoginDuration?.TotalHours < OtpSkipHours?.TotalHours )
                 {
-                    return new HomePage( page );
+                    return true;
                 }
             }
-            return new OtpPage( page );
+            return false;
         }
 
 
@@ -81,35 +81,39 @@ namespace IMSAutomation.TestCases
         public async Task SkipOtpForTrustedDeviceAsync ()
         {
             var dbHelper = new DatabaseHelper();
-           // await dbHelper.RemoveLastOtpCode( ConnectionString, OtpUserLogin );
-            //  await dbHelper.ClearTrustedDevices( ConnectionString, OtpUserLogin );
-
-            // Step 1: Login and navigate to the OTP page
-            var afterLoginPage = await CheckTrustThisDeviceAsync();
-            TestContext.WriteLine( afterLoginPage );
-
-            // Step 4: Validate successful login
-            if ( afterLoginPage is HomePage )
+           await dbHelper.RemoveLastOtpCode( ConnectionString, OtpUserLogin );
+             await dbHelper.ClearTrustedDevices( ConnectionString, OtpUserLogin );
+            var afterLoginPage = await LoginAndRedirectAsync();
+            var (otpGeneratedTime, otp, smsSent) = dbHelper.GetLatestOtpCode( OtpUserLogin, ConnectionString );
+            if ( afterLoginPage is OtpPage otpPage )
             {
-                Assert.Pass( "Successfully logged in with trusted device option." );
+                await otpPage.RedirectToHomePageAfterOpt( otp );
             }
-            if ( afterLoginPage is OtpPage )
+            else 
             {
-                Assert.Inconclusive( "OTP page displayed, trusted device not recognized." );
+                
+                Assert.Inconclusive( "Directly landed on HomePage" );
             }
+            var (browser, page) = await CreateBrowserAndPage( playwright, "chrome", new BrowserTypeLaunchOptions { Headless = false } );
+
+            var loginPage = new LoginPage( page );
+            var redirectedPage = await loginPage.RedirectPageAfterLogin( OtpUserLogin, OtpUserPassword );
+
+            bool isTrusted = await IsLoggedInTrustedDeviceAsync();
+
+
+            if ( isTrusted ) 
             {
-                Assert.Fail( "Failed to log in with trusted device option." );
+                Assert.That( redirectedPage is HomePage, "Should skip OTP and land on HomePage for trusted device." );
+               
             }
-           
+            else
+            {
+                Assert.Fail( "Device should be trusted but OTP page was shown." );
+            }
+             
 
-                // Step 2: Get latest OTP info
-                var (otpGeneratedTime, otp, smsSent) = dbHelper.GetLatestOtpCode( OtpUserLogin, ConnectionString );
-
-                if ( string.IsNullOrEmpty( otp ) )
-                {
-                    Assert.Fail( "No OTP found for the user." );
-                    return;
-                }
+          
 
             
         }

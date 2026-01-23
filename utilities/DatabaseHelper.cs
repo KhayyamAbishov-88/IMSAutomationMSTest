@@ -243,11 +243,6 @@ DELETE FROM dbo.UserOTP WHERE id = @LastOtpId;";
             await cmd.ExecuteNonQueryAsync();
         }
 
-
-
-
-
-
     }
 }
 
