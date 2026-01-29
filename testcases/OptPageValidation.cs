@@ -20,12 +20,12 @@ namespace IMSAutomation.TestCases
         private const string OtpUserLogin = "40-389-1302-10942";
         private const string OtpUserPassword = "Otp123456789";
 
-        private async Task<bool> IsLoggedInTrustedDeviceAsync ()
+        private async Task<bool> IsLoggedInWithTrustedDeviceAsync ()
         {
             var (browser, page) = await CreateBrowserAndPage( playwright, "chrome", new BrowserTypeLaunchOptions { Headless = false } );
           
             var dbHelper = new DatabaseHelper();
-           
+            await Task.Delay( 10000 );
             var (optFistLoginDate, deviceId) = await dbHelper.GetLastLoginDateAsync( OtpUserLogin, ConnectionString );
             var (hasOptPermission, OtpSkipHours) = await dbHelper.GetUserOtpPermissionAsync( OtpUserLogin, ConnectionString );
             var loginPage = new LoginPage( page );
@@ -98,10 +98,10 @@ namespace IMSAutomation.TestCases
 
             var loginPage = new LoginPage( page );
             var redirectedPage = await loginPage.RedirectPageAfterLogin( OtpUserLogin, OtpUserPassword );
+            
+            bool isTrusted = await IsLoggedInWithTrustedDeviceAsync();
 
-            bool isTrusted = await IsLoggedInTrustedDeviceAsync();
-
-
+           
             if ( isTrusted ) 
             {
                 Assert.That( redirectedPage is HomePage, "Should skip OTP and land on HomePage for trusted device." );
@@ -111,11 +111,8 @@ namespace IMSAutomation.TestCases
             {
                 Assert.Fail( "Device should be trusted but OTP page was shown." );
             }
-             
 
           
-
-            
         }
 
 
@@ -166,7 +163,7 @@ namespace IMSAutomation.TestCases
         {
             var dbHelper = new DatabaseHelper();
             await dbHelper.RemoveLastOtpCode( ConnectionString, OtpUserLogin );
-
+            await dbHelper.ClearTrustedDevices( ConnectionString, OtpUserLogin );
             // Step 1: Login and navigate to the OTP page
             var afterLoginPage = await LoginAndRedirectAsync();
             if ( afterLoginPage is not OtpPage otpPage )
