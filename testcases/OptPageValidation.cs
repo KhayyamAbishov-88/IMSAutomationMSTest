@@ -76,6 +76,7 @@ namespace IMSAutomation.TestCases
         }
 
         [Test]
+        [Description( "Verify that Otp enabled user land on OPT page" )]
         public async Task SkipOtpForTrustedDeviceAsync ()
         {
             var dbHelper = new DatabaseHelper();
@@ -113,7 +114,6 @@ namespace IMSAutomation.TestCases
                 Assert.Fail( "Device should be trusted but OTP page was shown." );
             }
 
-          
         }
 
 
