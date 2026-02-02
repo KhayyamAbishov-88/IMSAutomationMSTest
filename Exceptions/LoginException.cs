@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace IMSAutomation.Exceptions
 {
-    internal class LoginException : Exception
+    internal class LoginException : AutomationException
     {
-        public LoginException ( string message ) : base( message )
+        public LoginException(string message) : base(message)
         {
-        }   
-        public LoginException ( string message, Exception innerException ) : base( message, innerException )
+        }
+        public LoginException(string message, Exception innerException) : base(message, innerException)
         {
         }
     }

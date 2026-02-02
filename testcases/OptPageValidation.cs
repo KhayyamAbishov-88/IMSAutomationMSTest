@@ -20,10 +20,8 @@ namespace IMSAutomation.TestCases
         private const string OtpUserLogin = "40-389-1302-10942";
         private const string OtpUserPassword = "Otp123456789";
 
-        private async Task<bool> IsLoggedInTrustedDeviceAsync ()
+        private async Task<bool> IsLoggedInTrustedDeviceAsync ( IPage page )
         {
-            var (browser, page) = await CreateBrowserAndPage( playwright, "chrome", new BrowserTypeLaunchOptions { Headless = false } );
-          
             var dbHelper = new DatabaseHelper();
            
             var (optFistLoginDate, deviceId) = await dbHelper.GetLastLoginDateAsync( OtpUserLogin, ConnectionString );
@@ -84,6 +82,8 @@ namespace IMSAutomation.TestCases
            await dbHelper.RemoveLastOtpCode( ConnectionString, OtpUserLogin );
              await dbHelper.ClearTrustedDevices( ConnectionString, OtpUserLogin );
             var afterLoginPage = await LoginAndRedirectAsync();
+            var page = afterLoginPage.page;
+
             var (otpGeneratedTime, otp, smsSent) = dbHelper.GetLatestOtpCode( OtpUserLogin, ConnectionString );
             if ( afterLoginPage is OtpPage otpPage )
             {
@@ -94,12 +94,16 @@ namespace IMSAutomation.TestCases
                 
                 Assert.Inconclusive( "Directly landed on HomePage" );
             }
-            var (browser, page) = await CreateBrowserAndPage( playwright, "chrome", new BrowserTypeLaunchOptions { Headless = false } );
-
+           
             var loginPage = new LoginPage( page );
+            await loginPage.LogoutAsync();
+
             var redirectedPage = await loginPage.RedirectPageAfterLogin( OtpUserLogin, OtpUserPassword );
 
-            bool isTrusted = await IsLoggedInTrustedDeviceAsync();
+            // Wait for the database to be updated with the trusted device record
+            await Task.Delay( 1000 );
+
+            bool isTrusted = await IsLoggedInTrustedDeviceAsync( page );
 
 
             if ( isTrusted ) 
