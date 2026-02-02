@@ -20,18 +20,16 @@ namespace IMSAutomation.TestCases
         private const string OtpUserLogin = "40-389-1302-10942";
         private const string OtpUserPassword = "Otp123456789";
 
-        private async Task<bool> IsLoggedInWithTrustedDeviceAsync ()
+        private async Task<bool> IsLoggedInWithTrustedDeviceAsync (string clientFingerprint)
         {
             var dbHelper = new DatabaseHelper();
             await Task.Delay( 10000 );
             var (optFistLoginDate, deviceId) = await dbHelper.GetLastLoginDateAsync( OtpUserLogin, ConnectionString );
             var (hasOptPermission, OtpSkipHours) = await dbHelper.GetUserOtpPermissionAsync( OtpUserLogin, ConnectionString );
-            var loginPage = new LoginPage( page );
-            var deviceIdFromCookies = await loginPage.GetDeviceFingerprintAsync();
-           // var  afterLoginPage = await loginPage.RedirectPageAfterLogin( OtpUserLogin, OtpUserPassword );
+            
             DateTime currentDate = DateTime.Now;
             TimeSpan? OtpLoginDuration = currentDate - ( DateTime? )optFistLoginDate;
-            if ( deviceId == deviceIdFromCookies )
+            if ( deviceId == clientFingerprint )
             {
                 if ( hasOptPermission is true && OtpLoginDuration?.TotalHours < OtpSkipHours?.TotalHours )
                 {
@@ -99,9 +97,10 @@ namespace IMSAutomation.TestCases
             var loginPage = new LoginPage( page );
             await loginPage.LogoutAsync();
 
+            var clientFingerprint = await loginPage.GetDeviceFingerprintAsync();
             var redirectedPage = await loginPage.RedirectPageAfterLogin( OtpUserLogin, OtpUserPassword );
             
-            bool isTrusted = await IsLoggedInWithTrustedDeviceAsync();
+            bool isTrusted = await IsLoggedInWithTrustedDeviceAsync(clientFingerprint);
 
 
             if ( isTrusted ) 
