@@ -129,8 +129,10 @@ namespace IMSAutomation.Pages
             var deviceFingerprintInput = page.Locator( "#DeviceFingerprint" );
             await deviceFingerprintInput.WaitForAsync( new() { State = WaitForSelectorState.Attached } );
 
-            return await deviceFingerprintInput.InputValueAsync();
+            // Wait for the value to be populated
+            await page.WaitForFunctionAsync( "document.querySelector('#DeviceFingerprint').value !== ''" );
 
+            return await deviceFingerprintInput.InputValueAsync();
         }
 
         public async Task LogoutAsync() 
