@@ -74,7 +74,7 @@ namespace IMSAutomation.TestCases
         }
 
         [Test]
-        [Description( "Verify that Otp enabled user land on OPT page" )]
+        [Description( "Verify that Otp enabled user can directly land on  home page with trusted device" )]
         public async Task SkipOtpForTrustedDeviceAsync ()
         {
             var dbHelper = new DatabaseHelper();
@@ -86,38 +86,34 @@ namespace IMSAutomation.TestCases
             var (otpGeneratedTime, otp, smsSent) = dbHelper.GetLatestOtpCode( OtpUserLogin, ConnectionString );
             if ( afterLoginPage is OtpPage otpPage )
             {
-                await otpPage.RedirectToHomePageAfterOpt( otp );
+                var homePage =  await otpPage.RedirectToHomePageAfterOpt( otp );
+
+                var loginPage= await homePage.LogoutAsync();
+
+                var clientFingerprint = await loginPage.GetDeviceFingerprintAsync();
+
+                var redirectedPage = await loginPage.RedirectPageAfterLogin( OtpUserLogin, OtpUserPassword );
+
+                bool isTrusted = await IsLoggedInWithTrustedDeviceAsync( clientFingerprint );
+
+                if ( isTrusted )
+                {
+                    Assert.That( redirectedPage is HomePage, "Should skip OTP and land on HomePage for trusted device." );
+
+                }
+                else
+                {
+                    Assert.Fail( "Device should be trusted but OTP page was shown." );
+                }
             }
-            else 
+            else if ( afterLoginPage is HomePage )
             {
                 
                 Assert.Inconclusive( "Directly landed on HomePage" );
             }
            
-            var homePage = new HomePage(page);
-           await homePage.LogoutAsync();
-
-            var loginPage = new LoginPage( page );
-
-             var clientFingerprint = await loginPage.GetDeviceFingerprintAsync();
-
-     
-
-
-            var redirectedPage = await loginPage.RedirectPageAfterLogin( OtpUserLogin, OtpUserPassword );
-            
-            bool isTrusted = await IsLoggedInWithTrustedDeviceAsync(clientFingerprint);
-
-
-            if ( isTrusted ) 
-            {
-                Assert.That( redirectedPage is HomePage, "Should skip OTP and land on HomePage for trusted device." );
-               
-            }
-            else
-            {
-                Assert.Fail( "Device should be trusted but OTP page was shown." );
-            }
+          
+           
 
         }
 
