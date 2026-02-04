@@ -136,6 +136,7 @@ namespace IMSAutomation.Pages
         public async Task LogoutAsync() 
         { 
             var logoutLink =  page.Locator( "a[href='/WebIMS/Account/Logout']" );
+            await logoutLink.WaitForAsync( new() { State = WaitForSelectorState.Visible } );
             await logoutLink.ClickAsync();
         }
 

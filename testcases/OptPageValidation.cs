@@ -94,10 +94,16 @@ namespace IMSAutomation.TestCases
                 Assert.Inconclusive( "Directly landed on HomePage" );
             }
            
-            var loginPage = new LoginPage( page );
-            await loginPage.LogoutAsync();
+            var homePage = new HomePage(page);
+           await homePage.LogoutAsync();
 
-            var clientFingerprint = await loginPage.GetDeviceFingerprintAsync();
+            var loginPage = new LoginPage( page );
+
+             var clientFingerprint = await loginPage.GetDeviceFingerprintAsync();
+
+     
+
+
             var redirectedPage = await loginPage.RedirectPageAfterLogin( OtpUserLogin, OtpUserPassword );
             
             bool isTrusted = await IsLoggedInWithTrustedDeviceAsync(clientFingerprint);
