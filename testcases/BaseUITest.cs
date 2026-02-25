@@ -9,28 +9,31 @@ using Microsoft.Extensions.Configuration;
 using IMSAutomation.utilities;
 using IMSAutomation.Pages;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace IMSAutomation.TestCases
 {
+    [TestClass]
     public class BaseUITest
-
     {
         protected IPlaywright playwright;
         protected IBrowser browser;
         protected IPage page; // Made protected to be accessible for screenshots
-        IConfiguration configuration;
+        protected IConfiguration configuration;
+        public TestContext TestContext { get; set; }
         private static readonly log4net.ILog log = LoggerHelper.GetLogger(typeof(BaseUITest));
 
-        [OneTimeSetUp]
-        public async Task BeforeAllTests()
+        [ClassInitialize]
+        public static void BeforeAllTests(TestContext context)
         {
-            log.Info("Starting Test Run");
+            log4net.ILog classLog = LoggerHelper.GetLogger(typeof(BaseUITest));
+            classLog.Info("Starting Test Run");
         }
 
-        [SetUp]
+        [TestInitialize]
         public async Task BeforeEachtest()
         {
-            log.Info($"Starting test: {TestContext.CurrentContext.Test.Name}");
+            log.Info($"Starting test: {TestContext.TestName}");
             playwright = await Playwright.CreateAsync();
             LoginPage loginPage = new LoginPage(null);
         }
@@ -83,39 +86,32 @@ namespace IMSAutomation.TestCases
         }
 
 
-        [TearDown]
+        [TestCleanup]
         public async Task AfterEachTest()
         {
-            var outcome = TestContext.CurrentContext.Result.Outcome.Status;
-            if (outcome == NUnit.Framework.Interfaces.TestStatus.Failed)
+            var outcome = TestContext.CurrentTestOutcome;
+            if (outcome == UnitTestOutcome.Failed)
             {
-                var message = TestContext.CurrentContext.Result.Message;
-                var stackTrace = TestContext.CurrentContext.Result.StackTrace;
-                log.Error($"Test Failed: {TestContext.CurrentContext.Test.Name}");
-                log.Error($"Message: {message}");
-                log.Error($"StackTrace: {stackTrace}");
+                log.Error($"Test Failed: {TestContext.TestName}");
 
                 if (page != null)
                 {
-                    await ScreenshotHelper.CaptureScreenshotAsync(page, TestContext.CurrentContext.Test.Name);
+                    await ScreenshotHelper.CaptureScreenshotAsync(page, TestContext.TestName);
                 }
             }
             else
             {
-                log.Info($"Test Passed: {TestContext.CurrentContext.Test.Name}");
+                log.Info($"Test Passed: {TestContext.TestName}");
             }
 
             await Task.Delay(1000); // Optional delay to observe the state after each test
         }
 
-        [OneTimeTearDown]
-        public async Task AfterAllTests()
+        [ClassCleanup]
+        public static void AfterAllTests()
         {
-            if (playwright != null)
-            {
-                playwright.Dispose();
-            }
-            log.Info("Test Run Finished");
+            // Note: playwright and browser are instance members, so they can't be easily disposed here
+            // If they need to be disposed at class level, they should be static or handled in TestCleanup
         }
 
 
